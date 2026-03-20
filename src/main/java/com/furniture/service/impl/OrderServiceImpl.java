@@ -3,6 +3,7 @@ package com.furniture.service.impl;
 import com.furniture.entity.CartItem;
 import com.furniture.entity.Order;
 import com.furniture.entity.OrderItem;
+import com.furniture.entity.Product;
 import com.furniture.mapper.OrderMapper;
 import com.furniture.mapper.OrderItemMapper;
 import com.furniture.service.OrderService;
@@ -37,6 +38,17 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(int userId, List<CartItem> cartItems, String address, String paymentMethod) {
         // 生成订单ID
         String orderId = UUID.randomUUID().toString().replace("-", "");
+
+        // 检查库存
+        for (CartItem item : cartItems) {
+            Product product = productMapper.findById(item.getProduct().getId());
+            if (product == null) {
+                throw new RuntimeException("商品不存在: " + item.getProduct().getName());
+            }
+            if (product.getStock() < item.getQuantity()) {
+                throw new RuntimeException("商品库存不足: " + item.getProduct().getName());
+            }
+        }
 
         // 计算订单总价
         BigDecimal totalPrice = cartItems.stream()
@@ -239,5 +251,10 @@ public class OrderServiceImpl implements OrderService {
                 orderItemMapper.insert(item);
             }
         }
+    }
+
+    @Override
+    public Order findByOrderId(String orderId) {
+        return findById(orderId);
     }
 }

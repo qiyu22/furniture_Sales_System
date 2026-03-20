@@ -22,4 +22,7 @@ public interface OrderService {
     
     // 更新订单
     void update(Order order);
+    
+    // 根据订单号查询订单
+    Order findByOrderId(String orderId);
 }
