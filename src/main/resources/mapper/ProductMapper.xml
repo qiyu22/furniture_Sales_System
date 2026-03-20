@@ -77,14 +77,14 @@
 
     <!-- 插入产品 -->
     <insert id="insert" parameterType="com.furniture.entity.Product">
-        INSERT INTO product (name, category_id, brand_id, price, original_price, stock, sales, description, specs, image, images, status, created_at, updated_at)
-        VALUES (#{name}, #{categoryId}, #{brandId}, #{price}, #{originalPrice}, #{stock}, #{sales}, #{description}, #{specs}, #{image}, #{images}, #{status}, #{createdAt}, #{updatedAt})
+        INSERT INTO product (name, category_id, brand_id, price, original_price, stock, sales, description, specs, size, image, images, status, created_at, updated_at)
+        VALUES (#{name}, #{categoryId}, #{brandId}, #{price}, #{originalPrice}, #{stock}, #{sales}, #{description}, #{specs}, #{size}, #{image}, #{images}, #{status}, #{createdAt}, #{updatedAt})
     </insert>
 
     <!-- 更新产品 -->
     <update id="update" parameterType="com.furniture.entity.Product">
         UPDATE product
-        SET name = #{name}, category_id = #{categoryId}, brand_id = #{brandId}, price = #{price}, original_price = #{originalPrice}, stock = #{stock}, sales = #{sales}, description = #{description}, specs = #{specs}, image = #{image}, images = #{images}, status = #{status}, updated_at = #{updatedAt}
+        SET name = #{name}, category_id = #{categoryId}, brand_id = #{brandId}, price = #{price}, original_price = #{originalPrice}, stock = #{stock}, sales = #{sales}, description = #{description}, specs = #{specs}, size = #{size}, image = #{image}, images = #{images}, status = #{status}, updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>
 

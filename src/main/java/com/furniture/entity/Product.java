@@ -17,6 +17,7 @@ public class Product {
     private BigDecimal rating; // 评分
     private String description; // 描述
     private String specs; // 规格（JSON格式）
+    private String size; // 产品尺寸
     private String image; // 主图
     private String images; // 轮播图（JSON格式）
     private Integer status; // 状态：1-上架，0-下架
