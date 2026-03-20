@@ -11,7 +11,7 @@
  Target Server Version : 80012
  File Encoding         : 65001
 
- Date: 19/03/2026 20:04:59
+ Date: 20/03/2026 19:44:08
 */
 
 SET NAMES utf8mb4;
@@ -57,7 +57,7 @@ CREATE TABLE `activity_product`  (
   INDEX `idx_product`(`product_id`) USING BTREE,
   CONSTRAINT `activity_product_ibfk_1` FOREIGN KEY (`activity_id`) REFERENCES `activity` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `activity_product_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of activity_product
@@ -140,13 +140,11 @@ CREATE TABLE `cart_item`  (
   INDEX `idx_product`(`product_id`) USING BTREE,
   CONSTRAINT `cart_item_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cart_item_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cart_item
 -- ----------------------------
-INSERT INTO `cart_item` VALUES (19, 5, 9, 1, 1, '2026-03-19 01:38:00', '2026-03-19 18:15:40');
-INSERT INTO `cart_item` VALUES (20, 5, 16, 1, 1, '2026-03-19 10:29:56', '2026-03-19 10:29:56');
 
 -- ----------------------------
 -- Table structure for category
@@ -219,17 +217,23 @@ CREATE TABLE `order_item`  (
   INDEX `idx_product`(`product_id`) USING BTREE,
   CONSTRAINT `order_item_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `order_item_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 75 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 95 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of order_item
 -- ----------------------------
 INSERT INTO `order_item` VALUES (56, '202603130003', 3, '沙发', 'http://localhost:8080/images/e7415cb3-914a-4054-a063-3b68dbe0f318.png', 2, 1999.00, NULL);
-INSERT INTO `order_item` VALUES (70, '202603130001', 14, '餐椅', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', 1, 399.00, NULL);
-INSERT INTO `order_item` VALUES (71, '202603130001', 1, '办公椅', 'http://localhost:8080/images/1b77d7ed-f904-4ec6-a9a4-444f94e24d5d.png', 2, 400.00, NULL);
-INSERT INTO `order_item` VALUES (72, '202603130001', 10, '餐桌', 'http://localhost:8080/images/b265d34f-6d53-4ba8-b0c6-f0a6f1040aaa.png', 1, 1500.00, NULL);
 INSERT INTO `order_item` VALUES (74, '202603130002', 2, '办公桌', 'http://localhost:8080/images/578da18b-91e5-461a-aa53-ba8d82269bab.png', 2, 1200.00, NULL);
 INSERT INTO `order_item` VALUES (75, '202603130002', 14, '餐椅', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', 1, 399.00, NULL);
+INSERT INTO `order_item` VALUES (82, '202603130001', 14, '餐椅', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', 1, 399.00, NULL);
+INSERT INTO `order_item` VALUES (83, '202603130001', 1, '办公椅', 'http://localhost:8080/images/1b77d7ed-f904-4ec6-a9a4-444f94e24d5d.png', 2, 400.00, NULL);
+INSERT INTO `order_item` VALUES (84, '202603130001', 10, '餐桌', 'http://localhost:8080/images/b265d34f-6d53-4ba8-b0c6-f0a6f1040aaa.png', 1, 1500.00, NULL);
+INSERT INTO `order_item` VALUES (85, '407f1dd0d2304c77b5a5a794bc538b1c', 9, '实木床', 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', 1, 400.00, NULL);
+INSERT INTO `order_item` VALUES (86, '407f1dd0d2304c77b5a5a794bc538b1c', 16, '床头柜', 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', 1, 199.00, NULL);
+INSERT INTO `order_item` VALUES (89, '44259c8f6ca0434f84ad705b4d0f5018', 9, '实木床', 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', 1, 400.00, NULL);
+INSERT INTO `order_item` VALUES (90, '44259c8f6ca0434f84ad705b4d0f5018', 16, '床头柜', 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', 1, 199.00, NULL);
+INSERT INTO `order_item` VALUES (93, 'd431bae6f0e64cfcb15435b036eebd3e', 9, '实木床', 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', 1, 400.00, NULL);
+INSERT INTO `order_item` VALUES (94, 'd431bae6f0e64cfcb15435b036eebd3e', 16, '床头柜', 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', 1, 199.00, NULL);
 
 -- ----------------------------
 -- Table structure for orders
@@ -258,9 +262,12 @@ CREATE TABLE `orders`  (
 -- ----------------------------
 -- Records of orders
 -- ----------------------------
-INSERT INTO `orders` VALUES ('202603130001', 5, 2699.00, 2699.00, 3, '支付宝', NULL, '深圳市南山区科技园1号', '张三', '13811111111', NULL, NULL, '2026-03-13 18:54:51', '2026-03-18 03:12:40');
+INSERT INTO `orders` VALUES ('202603130001', 5, 2699.00, 2699.00, 3, '支付宝', NULL, '深圳市南山区科技园1号', '张三', '13811111111', NULL, NULL, '2026-03-13 18:54:51', '2026-03-19 12:17:33');
 INSERT INTO `orders` VALUES ('202603130002', 6, 2799.00, 2799.00, 3, '微信', NULL, '广州市天河区体育西路100号', '李四', '13822222222', NULL, '2026-03-14 11:06:44', '2026-03-13 18:54:51', '2026-03-18 03:14:39');
 INSERT INTO `orders` VALUES ('202603130003', 7, 3998.00, 3998.00, 3, '支付宝', NULL, '杭州市西湖区文三路88号', '王五', '13833333333', NULL, '2026-03-14 11:06:44', '2026-03-13 18:54:51', '2026-03-14 08:35:30');
+INSERT INTO `orders` VALUES ('407f1dd0d2304c77b5a5a794bc538b1c', 5, 599.00, 599.00, 4, 'alipay', NULL, '张三 13811111111, 广东省深圳市南山区科技园1号', NULL, NULL, NULL, NULL, '2026-03-20 08:22:56', '2026-03-20 16:31:00');
+INSERT INTO `orders` VALUES ('44259c8f6ca0434f84ad705b4d0f5018', 5, 599.00, 599.00, 3, 'alipay', NULL, '张三 13811111111, 广东省深圳市南山区科技园1号', NULL, NULL, NULL, NULL, '2026-03-20 08:27:01', '2026-03-20 16:45:41');
+INSERT INTO `orders` VALUES ('d431bae6f0e64cfcb15435b036eebd3e', 5, 599.00, 599.00, 3, 'alipay', NULL, '张三 13811111111, 广东省深圳市南山区科技园1号', NULL, NULL, NULL, NULL, '2026-03-20 08:44:40', '2026-03-20 16:45:43');
 
 -- ----------------------------
 -- Table structure for product
@@ -296,13 +303,13 @@ CREATE TABLE `product`  (
 INSERT INTO `product` VALUES (1, '办公椅', 13, NULL, 400.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1b77d7ed-f904-4ec6-a9a4-444f94e24d5d.png', NULL, NULL, '2026-03-13 07:22:59', '2026-03-18 11:12:39');
 INSERT INTO `product` VALUES (2, '办公桌', 13, NULL, 1200.00, NULL, 18, 2, 5.00, '办公用品', NULL, 'http://localhost:8080/images/84faa67d-fa80-452d-af6a-da9428431c70.png', NULL, NULL, '2026-03-13 07:36:29', '2026-03-18 02:35:46');
 INSERT INTO `product` VALUES (3, '沙发', 14, NULL, 1999.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1c8386be-4a41-4687-9e4b-f9344618d9c5.png', NULL, NULL, '2026-03-13 07:47:36', '2026-03-18 11:09:29');
-INSERT INTO `product` VALUES (9, '实木床', 14, NULL, 700.00, NULL, 20, 0, 5.00, '', NULL, 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', NULL, NULL, '2026-03-13 08:08:56', '2026-03-18 02:36:41');
+INSERT INTO `product` VALUES (9, '实木床', 14, NULL, 700.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', NULL, NULL, '2026-03-13 08:08:56', '2026-03-20 16:44:39');
 INSERT INTO `product` VALUES (10, '餐桌', 15, NULL, 1500.00, NULL, 14, 1, 5.00, '', NULL, 'http://localhost:8080/images/b265d34f-6d53-4ba8-b0c6-f0a6f1040aaa.png', NULL, NULL, '2026-03-18 02:08:14', '2026-03-18 11:12:39');
 INSERT INTO `product` VALUES (11, '书柜', 13, 6, 999.00, 1199.00, 25, 0, 4.70, '多层书柜', '尺寸: 180x80cm, 材质: 人造板', 'http://localhost:8080/images/084ef819-96f1-4c49-b9b6-f8cdbe133499.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:33');
 INSERT INTO `product` VALUES (12, '茶几', 14, 7, 799.00, 999.00, 40, 0, 4.90, '现代茶几', '尺寸: 120x60cm, 材质: 岩板', 'http://localhost:8080/images/45d0dae9-a6bb-4817-bac1-a69c0d0c900d.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:06');
 INSERT INTO `product` VALUES (13, '衣柜', 16, 8, 2499.00, 2999.00, 15, 0, 4.60, '推拉门衣柜', '尺寸: 200x60cm, 材质: 密度板', 'http://localhost:8080/images/e14b9a94-6eb0-4282-bd77-be125d052516.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:24');
 INSERT INTO `product` VALUES (14, '餐椅', 15, 9, 399.00, 499.00, 58, 2, 4.50, '现代餐椅', '颜色: 灰色, 材质: 布艺', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 11:14:38');
-INSERT INTO `product` VALUES (16, '床头柜', 16, NULL, 300.00, NULL, 20, 0, 5.00, '', NULL, 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', NULL, NULL, '2026-03-18 02:50:57', '2026-03-18 11:09:58');
+INSERT INTO `product` VALUES (16, '床头柜', 16, NULL, 300.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', NULL, NULL, '2026-03-18 02:50:57', '2026-03-20 16:44:39');
 
 -- ----------------------------
 -- Table structure for review
@@ -326,13 +333,15 @@ CREATE TABLE `review`  (
   CONSTRAINT `review_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `review_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `review_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of review
 -- ----------------------------
 INSERT INTO `review` VALUES (1, 5, 1, '202603130001', 5, '椅子质量很好，坐着很舒服', NULL, 1, '2026-03-14 10:18:09', '2026-03-14 10:18:09');
 INSERT INTO `review` VALUES (3, 7, 3, '202603130003', 5, '沙发很柔软，款式时尚', NULL, 1, '2026-03-14 10:18:09', '2026-03-14 10:18:09');
+INSERT INTO `review` VALUES (11, 5, 9, 'd431bae6f0e64cfcb15435b036eebd3e', 3, '一般', '', 1, '2026-03-20 09:22:51', '2026-03-20 09:22:51');
+INSERT INTO `review` VALUES (12, 5, 16, 'd431bae6f0e64cfcb15435b036eebd3e', 5, '好', '', 1, '2026-03-20 09:22:51', '2026-03-20 09:22:51');
 
 -- ----------------------------
 -- Table structure for sales_statistics
@@ -441,6 +450,10 @@ INSERT INTO `user_behavior` VALUES (4, 6, 2, 'view', '简约', '2026-03-14 10:18
 INSERT INTO `user_behavior` VALUES (5, 6, 2, 'buy', '简约', '2026-03-14 10:18:09');
 INSERT INTO `user_behavior` VALUES (6, 7, 3, 'view', '北欧', '2026-03-14 10:18:09');
 INSERT INTO `user_behavior` VALUES (7, 7, 3, 'buy', '北欧', '2026-03-14 10:18:09');
+INSERT INTO `user_behavior` VALUES (9, 4, 9, 'view', NULL, '2026-03-20 19:36:29');
+INSERT INTO `user_behavior` VALUES (10, 4, 2, 'view', NULL, '2026-03-20 19:38:17');
+INSERT INTO `user_behavior` VALUES (11, 4, 10, 'view', NULL, '2026-03-20 19:38:30');
+INSERT INTO `user_behavior` VALUES (12, 4, 3, 'view', NULL, '2026-03-20 19:40:35');
 
 -- ----------------------------
 -- Table structure for user_browse_history

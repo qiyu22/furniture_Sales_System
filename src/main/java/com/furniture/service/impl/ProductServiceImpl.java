@@ -3,6 +3,7 @@ package com.furniture.service.impl;
 import com.furniture.entity.Product;
 import com.furniture.mapper.ProductMapper;
 import com.furniture.service.ProductService;
+import com.furniture.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ public class ProductServiceImpl implements ProductService {
     
     @Autowired
     private ProductMapper productMapper;
+    
+    @Autowired
+    private RecommendationService recommendationService;
     
     @Override
     public List<Product> findAll() {
@@ -115,7 +119,13 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public List<Product> getRecommendProducts(Integer userId) {
-        return productMapper.findRecommendProducts(userId);
+        // 如果有用户ID，使用个性化推荐
+        if (userId != null) {
+            return recommendationService.recommendByUserId(userId, 8);
+        } else {
+            // 如果没有用户ID，返回热门商品作为推荐
+            return productMapper.findHotProducts();
+        }
     }
     
     @Override
