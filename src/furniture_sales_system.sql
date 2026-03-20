@@ -11,7 +11,7 @@
  Target Server Version : 80012
  File Encoding         : 65001
 
- Date: 20/03/2026 19:44:08
+ Date: 20/03/2026 20:00:52
 */
 
 SET NAMES utf8mb4;
@@ -290,6 +290,7 @@ CREATE TABLE `product`  (
   `status` int(11) NULL DEFAULT 1,
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  `size` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '产品尺寸，如120x60x80cm',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_category`(`category_id`) USING BTREE,
   INDEX `idx_brand`(`brand_id`) USING BTREE,
@@ -300,16 +301,16 @@ CREATE TABLE `product`  (
 -- ----------------------------
 -- Records of product
 -- ----------------------------
-INSERT INTO `product` VALUES (1, '办公椅', 13, NULL, 400.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1b77d7ed-f904-4ec6-a9a4-444f94e24d5d.png', NULL, NULL, '2026-03-13 07:22:59', '2026-03-18 11:12:39');
-INSERT INTO `product` VALUES (2, '办公桌', 13, NULL, 1200.00, NULL, 18, 2, 5.00, '办公用品', NULL, 'http://localhost:8080/images/84faa67d-fa80-452d-af6a-da9428431c70.png', NULL, NULL, '2026-03-13 07:36:29', '2026-03-18 02:35:46');
-INSERT INTO `product` VALUES (3, '沙发', 14, NULL, 1999.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1c8386be-4a41-4687-9e4b-f9344618d9c5.png', NULL, NULL, '2026-03-13 07:47:36', '2026-03-18 11:09:29');
-INSERT INTO `product` VALUES (9, '实木床', 14, NULL, 700.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', NULL, NULL, '2026-03-13 08:08:56', '2026-03-20 16:44:39');
-INSERT INTO `product` VALUES (10, '餐桌', 15, NULL, 1500.00, NULL, 14, 1, 5.00, '', NULL, 'http://localhost:8080/images/b265d34f-6d53-4ba8-b0c6-f0a6f1040aaa.png', NULL, NULL, '2026-03-18 02:08:14', '2026-03-18 11:12:39');
-INSERT INTO `product` VALUES (11, '书柜', 13, 6, 999.00, 1199.00, 25, 0, 4.70, '多层书柜', '尺寸: 180x80cm, 材质: 人造板', 'http://localhost:8080/images/084ef819-96f1-4c49-b9b6-f8cdbe133499.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:33');
-INSERT INTO `product` VALUES (12, '茶几', 14, 7, 799.00, 999.00, 40, 0, 4.90, '现代茶几', '尺寸: 120x60cm, 材质: 岩板', 'http://localhost:8080/images/45d0dae9-a6bb-4817-bac1-a69c0d0c900d.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:06');
-INSERT INTO `product` VALUES (13, '衣柜', 16, 8, 2499.00, 2999.00, 15, 0, 4.60, '推拉门衣柜', '尺寸: 200x60cm, 材质: 密度板', 'http://localhost:8080/images/e14b9a94-6eb0-4282-bd77-be125d052516.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:24');
-INSERT INTO `product` VALUES (14, '餐椅', 15, 9, 399.00, 499.00, 58, 2, 4.50, '现代餐椅', '颜色: 灰色, 材质: 布艺', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 11:14:38');
-INSERT INTO `product` VALUES (16, '床头柜', 16, NULL, 300.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', NULL, NULL, '2026-03-18 02:50:57', '2026-03-20 16:44:39');
+INSERT INTO `product` VALUES (1, '办公椅', 13, NULL, 400.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1b77d7ed-f904-4ec6-a9a4-444f94e24d5d.png', NULL, NULL, '2026-03-13 07:22:59', '2026-03-18 11:12:39', NULL);
+INSERT INTO `product` VALUES (2, '办公桌', 13, NULL, 1200.00, NULL, 18, 2, 5.00, '办公用品', NULL, 'http://localhost:8080/images/84faa67d-fa80-452d-af6a-da9428431c70.png', NULL, NULL, '2026-03-13 07:36:29', '2026-03-18 02:35:46', NULL);
+INSERT INTO `product` VALUES (3, '沙发', 14, NULL, 1999.00, NULL, 58, 2, 5.00, '', NULL, 'http://localhost:8080/images/1c8386be-4a41-4687-9e4b-f9344618d9c5.png', NULL, NULL, '2026-03-13 07:47:36', '2026-03-18 11:09:29', NULL);
+INSERT INTO `product` VALUES (9, '实木床', 14, NULL, 700.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/854af08d-becb-418c-bb8b-3845e5b07429.png', NULL, NULL, '2026-03-13 08:08:56', '2026-03-20 16:44:39', NULL);
+INSERT INTO `product` VALUES (10, '餐桌', 15, NULL, 1500.00, NULL, 14, 1, 5.00, '', NULL, 'http://localhost:8080/images/b265d34f-6d53-4ba8-b0c6-f0a6f1040aaa.png', NULL, NULL, '2026-03-18 02:08:14', '2026-03-18 11:12:39', NULL);
+INSERT INTO `product` VALUES (11, '书柜', 13, 6, 999.00, 1199.00, 25, 0, 4.70, '多层书柜', '尺寸: 180x80cm, 材质: 人造板', 'http://localhost:8080/images/084ef819-96f1-4c49-b9b6-f8cdbe133499.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:33', NULL);
+INSERT INTO `product` VALUES (12, '茶几', 14, 7, 799.00, 999.00, 40, 0, 4.90, '现代茶几', '尺寸: 120x60cm, 材质: 岩板', 'http://localhost:8080/images/45d0dae9-a6bb-4817-bac1-a69c0d0c900d.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:06', NULL);
+INSERT INTO `product` VALUES (13, '衣柜', 16, 8, 2499.00, 2999.00, 15, 0, 4.60, '推拉门衣柜', '尺寸: 200x60cm, 材质: 密度板', 'http://localhost:8080/images/e14b9a94-6eb0-4282-bd77-be125d052516.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 02:37:24', NULL);
+INSERT INTO `product` VALUES (14, '餐椅', 15, 9, 399.00, 499.00, 58, 2, 4.50, '现代餐椅', '颜色: 灰色, 材质: 布艺', 'http://localhost:8080/images/6ec5c6df-b22b-4132-89eb-ddd468279de0.png', NULL, 1, '2026-03-14 10:00:00', '2026-03-18 11:14:38', NULL);
+INSERT INTO `product` VALUES (16, '床头柜', 16, NULL, 300.00, NULL, 18, 2, 5.00, '', NULL, 'http://localhost:8080/images/b5cb4aa1-fcd8-453a-bbd9-232c3cfbd384.png', NULL, NULL, '2026-03-18 02:50:57', '2026-03-20 16:44:39', NULL);
 
 -- ----------------------------
 -- Table structure for review
