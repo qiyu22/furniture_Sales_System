@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.OrderItemMapper">
+    <!-- 根据订单ID查询订单项 -->
+    <select id="findByOrderId" resultType="com.furniture.entity.OrderItem">
+        SELECT * FROM order_item WHERE order_id = #{orderId}
+    </select>
+
+    <!-- 插入订单项 -->
+    <insert id="insert" parameterType="com.furniture.entity.OrderItem">
+        INSERT INTO order_item (order_id, product_id, product_name, product_image, quantity, price)
+        VALUES (#{orderId}, #{productId}, #{productName}, #{productImage}, #{quantity}, #{price})
+    </insert>
+
+    <!-- 批量插入订单项 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO order_item (order_id, product_id, product_name, product_image, quantity, price)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.orderId}, #{item.productId}, #{item.productName}, #{item.productImage}, #{item.quantity}, #{item.price})
+        </foreach>
+    </insert>
+    
+    <!-- 根据订单ID删除订单项 -->
+    <delete id="deleteByOrderId" parameterType="java.lang.String">
+        DELETE FROM order_item WHERE order_id = #{orderId}
+    </delete>
+</mapper>

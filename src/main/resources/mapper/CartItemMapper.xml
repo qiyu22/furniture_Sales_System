@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.CartItemMapper">
+    <!-- 根据用户ID查询购物车项 -->
+    <select id="findByUserId" parameterType="java.lang.Integer" resultType="com.furniture.entity.CartItem">
+        SELECT * FROM cart_item WHERE user_id = #{userId}
+    </select>
+
+    <!-- 根据用户ID和产品ID查询购物车项 -->
+    <select id="findByUserIdAndProductId" resultType="com.furniture.entity.CartItem">
+        SELECT * FROM cart_item WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <!-- 插入购物车项 -->
+    <insert id="insert" parameterType="com.furniture.entity.CartItem">
+        INSERT INTO cart_item (user_id, product_id, quantity, created_at, updated_at)
+        VALUES (#{userId}, #{productId}, #{quantity}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新购物车项数量 -->
+    <update id="updateQuantity" parameterType="java.util.Map">
+        UPDATE cart_item
+        SET quantity = #{quantity}, updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除购物车项 -->
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM cart_item WHERE id = #{id}
+    </delete>
+
+    <!-- 清空用户购物车 -->
+    <delete id="clearByUserId" parameterType="java.lang.Integer">
+        DELETE FROM cart_item WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 统计用户购物车数量 -->
+    <select id="countByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM cart_item WHERE user_id = #{userId}
+    </select>
+</mapper>

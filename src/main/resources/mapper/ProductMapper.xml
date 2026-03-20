@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.ProductMapper">
+    <!-- 查询所有产品 -->
+    <select id="findAll" resultType="com.furniture.entity.Product">
+        SELECT * FROM product
+    </select>
+
+    <!-- 查询所有产品（支持排序） -->
+    <select id="findAllWithSort" parameterType="java.lang.String" resultType="com.furniture.entity.Product">
+        SELECT * FROM product
+        <choose>
+            <when test="sortBy == 'sales_desc'">
+                ORDER BY sales DESC
+            </when>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sortBy == 'rating_desc'">
+                ORDER BY rating DESC
+            </when>
+            <when test="sortBy == 'latest'">
+                ORDER BY created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY id DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据分类ID查询产品 -->
+    <select id="findByCategoryId" parameterType="java.lang.Integer" resultType="com.furniture.entity.Product">
+        SELECT * FROM product WHERE category_id = #{categoryId}
+    </select>
+
+    <!-- 根据分类ID查询产品（支持排序） -->
+    <select id="findByCategoryIdWithSort" resultType="com.furniture.entity.Product">
+        SELECT * FROM product
+        <where>
+            <if test="categoryId != null and categoryId != 0">
+                category_id = #{categoryId}
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'sales_desc'">
+                ORDER BY sales DESC
+            </when>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sortBy == 'rating_desc'">
+                ORDER BY rating DESC
+            </when>
+            <when test="sortBy == 'latest'">
+                ORDER BY created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY id DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据ID查询产品 -->
+    <select id="findById" parameterType="java.lang.Integer" resultType="com.furniture.entity.Product">
+        SELECT * FROM product WHERE id = #{id}
+    </select>
+
+    <!-- 插入产品 -->
+    <insert id="insert" parameterType="com.furniture.entity.Product">
+        INSERT INTO product (name, category_id, brand_id, price, original_price, stock, sales, description, specs, image, images, status, created_at, updated_at)
+        VALUES (#{name}, #{categoryId}, #{brandId}, #{price}, #{originalPrice}, #{stock}, #{sales}, #{description}, #{specs}, #{image}, #{images}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新产品 -->
+    <update id="update" parameterType="com.furniture.entity.Product">
+        UPDATE product
+        SET name = #{name}, category_id = #{categoryId}, brand_id = #{brandId}, price = #{price}, original_price = #{originalPrice}, stock = #{stock}, sales = #{sales}, description = #{description}, specs = #{specs}, image = #{image}, images = #{images}, status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除产品 -->
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM product WHERE id = #{id}
+    </delete>
+
+    <!-- 减少产品库存 -->
+    <update id="decreaseStock">
+        UPDATE product SET stock = stock - #{quantity} WHERE id = #{productId} AND stock >= #{quantity}
+    </update>
+
+    <!-- 增加产品库存 -->
+    <update id="increaseStock">
+        UPDATE product SET stock = stock + #{quantity} WHERE id = #{productId}
+    </update>
+
+    <!-- 增加产品销量 -->
+    <update id="increaseSales">
+        UPDATE product SET sales = sales + #{quantity} WHERE id = #{productId}
+    </update>
+
+    <!-- 根据关键词搜索产品 -->
+    <select id="search" parameterType="java.lang.String" resultType="com.furniture.entity.Product">
+        SELECT * FROM product WHERE name LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+    
+    <!-- 查询推荐商品 -->
+    <select id="findRecommendProducts" parameterType="java.lang.Integer" resultType="com.furniture.entity.Product">
+        <!-- 如果用户ID为null，返回随机商品 -->
+        <if test="userId == null">
+            SELECT * FROM product WHERE status = 1 OR status IS NULL ORDER BY RAND() LIMIT 8
+        </if>
+        <!-- 如果用户ID不为null，基于用户购买历史推荐 -->
+        <if test="userId != null">
+            SELECT p.* FROM product p
+            WHERE (p.status = 1 OR p.status IS NULL) AND p.id NOT IN (
+                SELECT oi.product_id FROM order_item oi
+                JOIN `order` o ON oi.order_id = o.id
+                WHERE o.user_id = #{userId}
+            ) AND p.category_id IN (
+                SELECT p2.category_id FROM product p2
+                JOIN order_item oi2 ON p2.id = oi2.product_id
+                JOIN `order` o2 ON oi2.order_id = o2.id
+                WHERE o2.user_id = #{userId}
+                GROUP BY p2.category_id
+                ORDER BY COUNT(*) DESC
+                LIMIT 3
+            )
+            ORDER BY RAND() LIMIT 8
+        </if>
+    </select>
+    
+    <!-- 查询热门商品 -->
+    <select id="findHotProducts" resultType="com.furniture.entity.Product">
+        SELECT * FROM product WHERE status = 1 OR status IS NULL
+        ORDER BY sales DESC, rating DESC LIMIT 8
+    </select>
+    
+    <!-- 价格范围条件 -->
+    <sql id="priceRangeCondition">
+        <if test="priceRange != null and priceRange != 0">
+            <choose>
+                <when test="priceRange == 1">
+                    AND price BETWEEN 0 AND 1000
+                </when>
+                <when test="priceRange == 2">
+                    AND price BETWEEN 1000 AND 3000
+                </when>
+                <when test="priceRange == 3">
+                    AND price BETWEEN 3000 AND 5000
+                </when>
+                <when test="priceRange == 4">
+                    AND price > 5000
+                </when>
+            </choose>
+        </if>
+    </sql>
+    
+    <!-- 排序条件 -->
+    <sql id="sortCondition">
+        <choose>
+            <when test="sortBy == 'sales_desc'">
+                ORDER BY sales DESC
+            </when>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sortBy == 'rating_desc'">
+                ORDER BY rating DESC
+            </when>
+            <when test="sortBy == 'latest'">
+                ORDER BY created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY id DESC
+            </otherwise>
+        </choose>
+    </sql>
+    
+    <!-- 查询所有产品（支持分页、排序和价格筛选） -->
+    <select id="findAllWithPagination" resultType="com.furniture.entity.Product">
+        SELECT * FROM product
+        WHERE status = 1 OR status IS NULL
+        <include refid="priceRangeCondition" />
+        <include refid="sortCondition" />
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 统计所有产品数量（支持价格筛选） -->
+    <select id="countAll" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM product
+        WHERE status = 1 OR status IS NULL
+        <include refid="priceRangeCondition" />
+    </select>
+    
+    <!-- 根据分类ID查询产品（支持分页、排序和价格筛选） -->
+    <select id="findByCategoryIdWithPagination" resultType="com.furniture.entity.Product">
+        SELECT * FROM product
+        WHERE (status = 1 OR status IS NULL)
+        <if test="categoryId != null and categoryId != 0">
+            AND category_id = #{categoryId}
+        </if>
+        <include refid="priceRangeCondition" />
+        <include refid="sortCondition" />
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 统计指定分类的产品数量（支持价格筛选） -->
+    <select id="countByCategoryId" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM product
+        WHERE (status = 1 OR status IS NULL)
+        <if test="categoryId != null and categoryId != 0">
+            AND category_id = #{categoryId}
+        </if>
+        <include refid="priceRangeCondition" />
+    </select>
+</mapper>

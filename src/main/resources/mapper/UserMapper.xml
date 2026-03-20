@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.UserMapper">
+    <!-- 根据用户名查询用户 -->
+    <select id="findByUsername" parameterType="java.lang.String" resultType="com.furniture.entity.User">
+        SELECT * FROM user WHERE username = #{username}
+    </select>
+
+    <!-- 根据ID查询用户 -->
+    <select id="findById" parameterType="java.lang.Integer" resultType="com.furniture.entity.User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insert" parameterType="com.furniture.entity.User">
+        INSERT INTO user (username, password, name, phone, email, address, role, status, avatar, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{name}, #{phone}, #{email}, #{address}, #{role}, #{status}, #{avatar}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update" parameterType="com.furniture.entity.User">
+        UPDATE user
+        SET name = #{name}, password = #{password}, phone = #{phone}, email = #{email}, address = #{address}, role = #{role}, status = #{status}, avatar = #{avatar}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID更新用户状态 -->
+    <update id="updateStatus">
+        UPDATE user SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <!-- 查询所有用户 -->
+    <select id="findAll" resultType="com.furniture.entity.User">
+        SELECT * FROM user
+    </select>
+    
+    <!-- 删除用户 -->
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+</mapper>

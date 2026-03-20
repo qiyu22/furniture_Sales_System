@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.furniture.mapper.ReviewMapper">
+    <!-- 评价结果映射 -->
+    <resultMap id="ReviewResultMap" type="com.furniture.entity.Review">
+        <id property="id" column="r_id"/>
+        <result property="userId" column="r_user_id"/>
+        <result property="productId" column="r_product_id"/>
+        <result property="orderId" column="r_order_id"/>
+        <result property="rating" column="r_rating"/>
+        <result property="content" column="r_content"/>
+        <result property="images" column="r_images"/>
+        <result property="createdAt" column="r_created_at"/>
+        <result property="updatedAt" column="r_updated_at"/>
+        <!-- 关联商品信息 -->
+        <association property="product" javaType="com.furniture.entity.Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="price" column="p_price"/>
+            <result property="image" column="p_image"/>
+        </association>
+    </resultMap>
+    
+    <!-- 根据用户ID查询评价列表 -->
+    <select id="findByUserId" resultMap="ReviewResultMap">
+        SELECT 
+            r.id as r_id, r.user_id as r_user_id, r.product_id as r_product_id, r.order_id as r_order_id, 
+            r.rating as r_rating, r.content as r_content, r.images as r_images, 
+            r.created_at as r_created_at, r.updated_at as r_updated_at,
+            p.id as p_id, p.name as p_name, p.price as p_price, p.image as p_image
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        WHERE r.user_id = #{userId}
+        ORDER BY r.created_at DESC
+    </select>
+    
+    <!-- 查询所有评价 -->
+    <select id="findAll" resultType="com.furniture.entity.Review">
+        SELECT * FROM review
+    </select>
+    
+    <!-- 根据ID查询评价 -->
+    <select id="findById" resultType="com.furniture.entity.Review">
+        SELECT * FROM review
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 插入评价 -->
+    <insert id="insert" parameterType="com.furniture.entity.Review">
+        INSERT INTO review (user_id, product_id, order_id, rating, content, images, created_at, updated_at)
+        VALUES (#{userId}, #{productId}, #{orderId}, #{rating}, #{content}, #{images}, #{createdAt}, #{updatedAt})
+    </insert>
+    
+    <!-- 更新评价 -->
+    <update id="update" parameterType="com.furniture.entity.Review">
+        UPDATE review
+        SET rating = #{rating}, content = #{content}, images = #{images}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除评价 -->
+    <delete id="delete">
+        DELETE FROM review
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据商品ID查询评价 -->
+    <select id="findByProductId" resultType="com.furniture.entity.Review">
+        SELECT * FROM review WHERE product_id = #{productId}
+    </select>
+    
+    <!-- 查询所有评价，包含商品名称 -->
+    <select id="findAllWithProductName" resultType="java.util.Map">
+        SELECT r.id, r.user_id as userId, r.product_id as productId, r.order_id as orderId, 
+               r.rating, r.content, r.images, r.created_at as createdAt, r.updated_at as updatedAt, 
+               p.name as productName
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+    </select>
+
+    <!-- 根据ID查询评价，包含商品名称 -->
+    <select id="findByIdWithProductName" resultType="java.util.Map">
+        SELECT r.id, r.user_id as userId, r.product_id as productId, r.order_id as orderId, 
+               r.rating, r.content, r.images, r.created_at as createdAt, r.updated_at as updatedAt, 
+               p.name as productName
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        WHERE r.id = #{id}
+    </select>
+
+    <!-- 根据商品ID查询评价，包含商品名称 -->
+    <select id="findByProductIdWithProductName" resultType="java.util.Map">
+        SELECT r.id, r.user_id as userId, r.product_id as productId, r.order_id as orderId, 
+               r.rating, r.content, r.images, r.created_at as createdAt, r.updated_at as updatedAt, 
+               p.name as productName
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        WHERE r.product_id = #{productId}
+    </select>
+    
+    <!-- 查询最新评价，包含商品名称 -->
+    <select id="findLatestWithProductName" resultType="java.util.Map">
+        SELECT r.id, r.user_id as userId, r.product_id as productId, r.order_id as orderId, 
+               r.rating, r.content, r.images, r.created_at as createdAt, r.updated_at as updatedAt, 
+               p.name as productName
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        ORDER BY r.created_at DESC
+        LIMIT 5
+    </select>
+</mapper>

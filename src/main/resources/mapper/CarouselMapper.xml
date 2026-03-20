@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.CarouselMapper">
+    <!-- 插入轮播图 -->
+    <insert id="insert" parameterType="com.furniture.entity.Carousel">
+        INSERT INTO carousel (title, description, image, product_id, sort_order, status, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{image}, #{productId}, #{sortOrder}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新轮播图 -->
+    <update id="update" parameterType="com.furniture.entity.Carousel">
+        UPDATE carousel
+        SET title = #{title}, description = #{description}, image = #{image}, product_id = #{productId}, sort_order = #{sortOrder}, status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除轮播图 -->
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM carousel WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID查询轮播图 -->
+    <select id="findById" parameterType="java.lang.Integer" resultType="com.furniture.entity.Carousel">
+        SELECT * FROM carousel WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有轮播图 -->
+    <select id="findAll" resultType="com.furniture.entity.Carousel">
+        SELECT * FROM carousel ORDER BY sort_order ASC, id DESC
+    </select>
+
+    <!-- 获取启用的轮播图 -->
+    <select id="findByStatus" parameterType="java.lang.Integer" resultType="com.furniture.entity.Carousel">
+        SELECT * FROM carousel WHERE status = #{status} ORDER BY sort_order ASC, id DESC
+    </select>
+</mapper>

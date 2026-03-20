@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.furniture.mapper.ActivityMapper">
+    <!-- 活动商品结果映射 -->
+    <resultMap id="ActivityProductResultMap" type="com.furniture.entity.ActivityProduct">
+        <id property="id" column="ap_id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="activityPrice" column="activity_price"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="ap_created_at"/>
+        <!-- 关联商品信息 -->
+        <association property="product" javaType="com.furniture.entity.Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="categoryId" column="p_category_id"/>
+            <result property="brandId" column="p_brand_id"/>
+            <result property="price" column="p_price"/>
+            <result property="originalPrice" column="p_original_price"/>
+            <result property="stock" column="p_stock"/>
+            <result property="sales" column="p_sales"/>
+            <result property="rating" column="p_rating"/>
+            <result property="description" column="p_description"/>
+            <result property="specs" column="p_specs"/>
+            <result property="image" column="p_image"/>
+            <result property="images" column="p_images"/>
+            <result property="status" column="p_status"/>
+            <result property="createdAt" column="p_created_at"/>
+            <result property="updatedAt" column="p_updated_at"/>
+        </association>
+    </resultMap>
+    <!-- 查询所有活动 -->
+    <select id="findAll" resultType="com.furniture.entity.Activity">
+        SELECT * FROM activity
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据ID查询活动 -->
+    <select id="findById" resultType="com.furniture.entity.Activity">
+        SELECT * FROM activity
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据类型查询活动 -->
+    <select id="findByType" resultType="com.furniture.entity.Activity">
+        SELECT * FROM activity
+        WHERE type = #{type}
+        AND status = 1
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 查询当前有效的活动 -->
+    <select id="findActive" resultType="com.furniture.entity.Activity">
+        SELECT * FROM activity
+        WHERE status = 1
+        AND start_time &lt;= NOW()
+        AND end_time &gt;= NOW()
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 插入活动 -->
+    <insert id="insert" parameterType="com.furniture.entity.Activity">
+        INSERT INTO activity (title, description, start_time, end_time, type, status, created_at, updated_at)
+        VALUES (#{title}, #{description}, #{startTime}, #{endTime}, #{type}, #{status}, #{createdAt}, #{updatedAt})
+    </insert>
+    
+    <!-- 更新活动 -->
+    <update id="update" parameterType="com.furniture.entity.Activity">
+        UPDATE activity
+        SET title = #{title}, description = #{description}, start_time = #{startTime}, end_time = #{endTime},
+            type = #{type}, status = #{status}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 删除活动 -->
+    <delete id="delete">
+        DELETE FROM activity
+        WHERE id = #{id}
+    </delete>
+    
+    <!-- 查询活动商品 -->
+    <select id="findProductsByActivityId" resultMap="ActivityProductResultMap">
+        SELECT 
+            ap.id as ap_id, ap.activity_id, ap.product_id, ap.activity_price, ap.sort_order, ap.created_at as ap_created_at,
+            p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
+            p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
+            p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+        FROM activity_product ap
+        LEFT JOIN product p ON ap.product_id = p.id
+        WHERE ap.activity_id = #{activityId}
+        ORDER BY ap.sort_order ASC
+    </select>
+    
+    <!-- 插入活动商品 -->
+    <insert id="insertActivityProduct" parameterType="com.furniture.entity.ActivityProduct">
+        INSERT INTO activity_product (activity_id, product_id, activity_price, sort_order, created_at)
+        VALUES (#{activityId}, #{productId}, #{activityPrice}, #{sortOrder}, #{createdAt})
+    </insert>
+    
+    <!-- 删除活动商品 -->
+    <delete id="deleteActivityProduct">
+        DELETE FROM activity_product
+        WHERE activity_id = #{activityId}
+    </delete>
+    
+    <!-- 根据活动类型查询活动商品 -->
+    <select id="findProductsByActivityType" resultMap="ActivityProductResultMap">
+        SELECT 
+            ap.id as ap_id, ap.activity_id, ap.product_id, ap.activity_price, ap.sort_order, ap.created_at as ap_created_at,
+            p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
+            p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
+            p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+        FROM activity_product ap
+        LEFT JOIN product p ON ap.product_id = p.id
+        LEFT JOIN activity a ON ap.activity_id = a.id
+        WHERE a.type = #{type}
+        AND a.status = 1
+        AND a.start_time &lt;= NOW()
+        AND a.end_time &gt;= NOW()
+        ORDER BY ap.sort_order ASC
+    </select>
+    
+    <!-- 根据产品ID查询活动商品 -->
+    <select id="findProductsByProductId" resultMap="ActivityProductResultMap">
+        SELECT 
+            ap.id as ap_id, ap.activity_id, ap.product_id, ap.activity_price, ap.sort_order, ap.created_at as ap_created_at,
+            p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
+            p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
+            p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+        FROM activity_product ap
+        LEFT JOIN product p ON ap.product_id = p.id
+        LEFT JOIN activity a ON ap.activity_id = a.id
+        WHERE ap.product_id = #{productId}
+        AND a.status = 1
+        AND a.start_time &lt;= NOW()
+        AND a.end_time &gt;= NOW()
+        ORDER BY ap.sort_order ASC
+    </select>
+</mapper>

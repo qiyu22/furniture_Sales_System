@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace=mapper接口类的全限定名,这样实现对应-->
+<mapper namespace="com.furniture.mapper.OrderMapper">
+    <!-- 查询所有订单 -->
+    <select id="findAll" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders
+    </select>
+
+    <!-- 根据ID查询订单 -->
+    <select id="findById" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders WHERE id = #{id}
+    </select>
+
+    <!-- 根据用户ID查询订单 -->
+    <select id="findByUserId" parameterType="java.lang.Integer" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders WHERE user_id = #{userId}
+    </select>
+
+    <!-- 插入订单 -->
+    <insert id="insert" parameterType="com.furniture.entity.Order">
+        INSERT INTO orders (user_id, total_price, actual_price, status, payment_method, shipping_address, shipping_name, shipping_phone, created_at, updated_at)
+        VALUES (#{userId}, #{totalPrice}, #{totalPrice}, #{status}, #{paymentMethod}, #{shippingAddress}, #{shippingName}, #{shippingPhone}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <!-- 更新订单 -->
+    <update id="update" parameterType="com.furniture.entity.Order">
+        UPDATE orders
+        SET total_price = #{totalPrice}, actual_price = #{actualPrice}, payment_method = #{paymentMethod}, status = #{status}, shipping_address = #{shippingAddress}, shipping_name = #{shippingName}, shipping_phone = #{shippingPhone}, updated_at = #{updatedAt}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新订单状态 -->
+    <update id="updateStatus" parameterType="java.util.Map">
+        UPDATE orders SET status = #{status} WHERE id = #{orderId}
+    </update>
+
+    <!-- 删除订单 -->
+    <delete id="delete" parameterType="java.lang.String">
+        DELETE FROM orders WHERE id = #{id}
+    </delete>
+</mapper>
