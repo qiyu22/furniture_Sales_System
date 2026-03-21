@@ -64,6 +64,21 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(0); // 待支付
         order.setPaymentMethod(paymentMethod);
         order.setShippingAddress(address); // 设置收货地址
+        
+        // 解析收货地址字符串，提取收货人姓名和联系电话
+        if (address != null && !address.isEmpty()) {
+            String[] addressParts = address.split(",");
+            if (addressParts.length > 0) {
+                String[] contactParts = addressParts[0].split(" ");
+                if (contactParts.length > 0) {
+                    order.setShippingName(contactParts[0]); // 设置收货人姓名
+                }
+                if (contactParts.length > 1) {
+                    order.setShippingPhone(contactParts[1]); // 设置收货人电话
+                }
+            }
+        }
+        
         order.setCreatedAt(new Date());
         order.setUpdatedAt(new Date());
         orderMapper.insert(order);
