@@ -28,4 +28,13 @@ public interface UserMapper {
     
     // 删除用户
     void delete(@Param("id") Integer id);
+    
+    // 添加收藏
+    void addFavorite(@Param("userId") Integer userId, @Param("furnitureId") Integer furnitureId);
+    
+    // 取消收藏
+    void removeFavorite(@Param("userId") Integer userId, @Param("furnitureId") Integer furnitureId);
+    
+    // 查询用户收藏的家具ID列表
+    List<Integer> getFavoriteFurnitureIds(@Param("userId") Integer userId);
 }
