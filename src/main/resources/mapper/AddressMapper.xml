@@ -5,20 +5,22 @@
 <mapper namespace="com.furniture.mapper.AddressMapper">
     <!-- 根据用户ID查询地址列表 -->
     <select id="findByUserId" resultType="com.furniture.entity.Address">
-        SELECT * FROM user_address
+        SELECT id, user_id as userId, name, phone, province, city, district, detail_address as detail, is_default as isDefault, created_at as createdAt, updated_at as updatedAt
+        FROM user_address
         WHERE user_id = #{userId}
         ORDER BY is_default DESC, created_at DESC
     </select>
     
     <!-- 根据ID查询地址 -->
     <select id="findById" resultType="com.furniture.entity.Address">
-        SELECT * FROM user_address
+        SELECT id, user_id as userId, name, phone, province, city, district, detail_address as detail, is_default as isDefault, created_at as createdAt, updated_at as updatedAt
+        FROM user_address
         WHERE id = #{id}
     </select>
     
     <!-- 插入地址 -->
     <insert id="insert" parameterType="com.furniture.entity.Address">
-        INSERT INTO user_address (user_id, name, phone, province, city, district, detail, is_default, created_at, updated_at)
+        INSERT INTO user_address (user_id, name, phone, province, city, district, detail_address, is_default, created_at, updated_at)
         VALUES (#{userId}, #{name}, #{phone}, #{province}, #{city}, #{district}, #{detail}, #{isDefault}, #{createdAt}, #{updatedAt})
     </insert>
     
@@ -26,7 +28,7 @@
     <update id="update" parameterType="com.furniture.entity.Address">
         UPDATE user_address
         SET name = #{name}, phone = #{phone}, province = #{province}, city = #{city}, district = #{district}, 
-            detail = #{detail}, is_default = #{isDefault}, updated_at = #{updatedAt}
+            detail_address = #{detail}, is_default = #{isDefault}, updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>
     

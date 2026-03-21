@@ -31,13 +31,16 @@ public class AddressController {
             Claims claims = jwtUtils.parseToken(token);
             return (Integer) claims.get("userId");
         }
-        throw new RuntimeException("未找到用户信息");
+        return null;
     }
     
     @ApiOperation("获取用户地址列表")
     @GetMapping
     public List<Address> getUserAddresses(HttpServletRequest request) {
         Integer userId = getUserId(request);
+        if (userId == null) {
+            return java.util.Collections.emptyList();
+        }
         return addressService.findByUserId(userId);
     }
     
@@ -45,6 +48,9 @@ public class AddressController {
     @PostMapping
     public void addAddress(@ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
         Integer userId = getUserId(request);
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
         address.setUserId(userId);
         addressService.add(address);
     }
@@ -53,6 +59,9 @@ public class AddressController {
     @PutMapping("/{id}")
     public void updateAddress(@ApiParam("地址ID") @PathVariable Integer id, @ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
         Integer userId = getUserId(request);
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
         address.setId(id);
         address.setUserId(userId);
         addressService.update(address);
@@ -61,7 +70,10 @@ public class AddressController {
     @ApiOperation("删除地址")
     @DeleteMapping("/{id}")
     public void deleteAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
-        getUserId(request); // 验证用户登录状态
+        Integer userId = getUserId(request);
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
         addressService.delete(id);
     }
     
@@ -69,6 +81,9 @@ public class AddressController {
     @PutMapping("/{id}/default")
     public void setDefaultAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
         Integer userId = getUserId(request);
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
         addressService.setDefault(id, userId);
     }
 }
