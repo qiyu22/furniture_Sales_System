@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,9 +67,16 @@ public class PaymentController {
                     }
                     
                     // 验证金额
-                    if (!order.getTotalPrice().toString().equals(amount)) {
+                    try {
+                        BigDecimal paymentAmount = new BigDecimal(amount);
+                        if (order.getTotalPrice().compareTo(paymentAmount) != 0) {
+                            result.put("success", false);
+                            result.put("message", "金额不匹配");
+                            return result;
+                        }
+                    } catch (NumberFormatException e) {
                         result.put("success", false);
-                        result.put("message", "金额不匹配");
+                        result.put("message", "金额格式错误");
                         return result;
                     }
                     

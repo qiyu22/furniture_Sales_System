@@ -60,6 +60,12 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public void update(User user) {
+        // 先获取原始用户信息
+        User originalUser = userMapper.findById(user.getId());
+        if (originalUser == null) {
+            throw new RuntimeException("用户不存在");
+        }
+        
         // 如果密码不为空，则对密码进行加密处理
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             // 检查密码是否已经加密（BCrypt加密的密码长度较长，通常以$2a$开头）
@@ -67,8 +73,35 @@ public class UserServiceImpl implements UserService {
                 String encryptedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
                 user.setPassword(encryptedPassword);
             }
+        } else {
+            // 如果密码为空，则使用原始密码
+            user.setPassword(originalUser.getPassword());
         }
+        
+        // 如果姓名为空，则使用原始姓名
+        if (user.getName() == null || user.getName().isEmpty()) {
+            user.setName(originalUser.getName());
+        }
+        
+        // 如果地址为空，则使用原始地址
+        if (user.getAddress() == null || user.getAddress().isEmpty()) {
+            user.setAddress(originalUser.getAddress());
+        }
+        
+        // 如果角色为空，则使用原始角色
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole(originalUser.getRole());
+        }
+        
+        // 如果状态为空，则使用原始状态
+        if (user.getStatus() == null) {
+            user.setStatus(originalUser.getStatus());
+        }
+        
+        // 设置更新时间
         user.setUpdatedAt(new Date());
+        
+        // 更新用户信息
         userMapper.update(user);
     }
     
