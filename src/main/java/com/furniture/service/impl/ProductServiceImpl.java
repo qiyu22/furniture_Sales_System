@@ -7,6 +7,7 @@ import com.furniture.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -121,10 +122,12 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getRecommendProducts(Integer userId) {
         // 如果有用户ID，使用个性化推荐
         if (userId != null) {
-            return recommendationService.recommendByUserId(userId, 8);
+            List<Product> recommendations = recommendationService.recommendByUserId(userId, 8);
+            // 移除兜底逻辑，只返回个性化推荐结果
+            return recommendations;
         } else {
-            // 如果没有用户ID，返回热门商品作为推荐
-            return productMapper.findHotProducts();
+            // 如果没有用户ID，返回空列表
+            return new ArrayList<>();
         }
     }
     

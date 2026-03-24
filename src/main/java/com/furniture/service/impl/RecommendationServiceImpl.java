@@ -66,23 +66,28 @@ public class RecommendationServiceImpl implements RecommendationService {
             recommendedProducts.addAll(popularRecommendations);
         }
         
-        // 去重并排序
+        // 去重并排序（不移除用户历史记录，避免推荐商品为空）
         Map<Integer, RecommendedProduct> uniqueProducts = new HashMap<>();
         for (RecommendedProduct rp : recommendedProducts) {
-            if (!historyProductIds.contains(rp.getProduct().getId())) {
-                if (!uniqueProducts.containsKey(rp.getProduct().getId()) || 
-                    rp.getScore() > uniqueProducts.get(rp.getProduct().getId()).getScore()) {
-                    uniqueProducts.put(rp.getProduct().getId(), rp);
-                }
+            if (!uniqueProducts.containsKey(rp.getProduct().getId()) || 
+                rp.getScore() > uniqueProducts.get(rp.getProduct().getId()).getScore()) {
+                uniqueProducts.put(rp.getProduct().getId(), rp);
             }
         }
         
         // 按得分排序并限制数量
-        return uniqueProducts.values().stream()
+        List<Product> result = uniqueProducts.values().stream()
             .sorted(Comparator.comparing(RecommendedProduct::getScore).reversed())
             .limit(limit)
             .map(RecommendedProduct::getProduct)
             .collect(Collectors.toList());
+        
+        // 如果推荐结果为空，返回热门商品作为兜底
+        if (result == null || result.isEmpty()) {
+            return productService.getHotProducts();
+        }
+        
+        return result;
     }
     
     @Override
@@ -262,12 +267,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<Product> allProducts = productService.findAll();
         
         for (Product product : allProducts) {
-            if (!historyProductIds.contains(product.getId())) {
-                ProductProfile productProfile = buildProductProfile(product);
-                double score = calculateUserProductScore(userProfile, productProfile);
-                if (score > 0.1) {
-                    recommendations.add(new RecommendedProduct(product, score));
-                }
+            // 不移除用户历史记录，避免推荐商品越来越少
+            ProductProfile productProfile = buildProductProfile(product);
+            double score = calculateUserProductScore(userProfile, productProfile);
+            if (score > 0.1) {
+                recommendations.add(new RecommendedProduct(product, score));
             }
         }
         
@@ -288,7 +292,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         
         int count = 0;
         for (Product product : allProducts) {
-            if (!historyProductIds.contains(product.getId()) && count < limit) {
+            // 不移除用户历史记录，避免推荐商品越来越少
+            if (count < limit) {
                 recommendations.add(new RecommendedProduct(product, 0.5)); // 基础得分
                 count++;
             }
@@ -342,6 +347,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         Double categoryPreference = userProfile.getCategoryPreferences().get(productProfile.getCategoryId());
         if (categoryPreference != null) {
             score += categoryPreference * 0.6;
+        } else {
+            // 新用户默认分类偏好
+            score += 0.5 * 0.6;
         }
         
         // 价格偏好得分

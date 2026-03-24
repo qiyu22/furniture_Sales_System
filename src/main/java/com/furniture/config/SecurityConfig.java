@@ -30,9 +30,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             // 允许访问静态资源
             .antMatchers("/images/**", "/carousel/**").permitAll()
             // 产品和分类接口，普通用户也可以访问
-            .antMatchers("/api/products/**", "/api/category/**").permitAll()
-            // 轮播图、评论、统计等公开接口
-            .antMatchers("/api/carousel/**", "/api/review/**", "/api/statistics/**").permitAll()
+            .antMatchers("/api/products/**", "/api/categories/**").permitAll()
+            // 轮播图、评论、统计、活动、推荐等公开接口
+            .antMatchers("/api/carousels/**", "/api/reviews/**", "/api/statistics/**", "/api/activities/**", "/api/recommendations/**").permitAll()
             // 地址接口，需要认证
             .antMatchers("/api/addresses/**").authenticated()
             // 购物车接口，需要认证
