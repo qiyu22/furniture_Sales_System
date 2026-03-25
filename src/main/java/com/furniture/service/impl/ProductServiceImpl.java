@@ -123,12 +123,13 @@ public class ProductServiceImpl implements ProductService {
         // 如果有用户ID，使用个性化推荐
         if (userId != null) {
             List<Product> recommendations = recommendationService.recommendByUserId(userId, 8);
-            // 移除兜底逻辑，只返回个性化推荐结果
-            return recommendations;
-        } else {
-            // 如果没有用户ID，返回空列表
-            return new ArrayList<>();
+            // 如果个性化推荐没有结果，返回热门商品作为兜底
+            if (recommendations != null && !recommendations.isEmpty()) {
+                return recommendations;
+            }
         }
+        // 如果没有用户ID或个性化推荐没有结果，返回热门商品作为推荐
+        return productMapper.findHotProducts();
     }
     
     @Override

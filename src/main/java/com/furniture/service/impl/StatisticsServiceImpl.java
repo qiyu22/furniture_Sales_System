@@ -7,6 +7,7 @@ import com.furniture.service.ProductService;
 import com.furniture.service.OrderService;
 import com.furniture.service.CategoryService;
 import com.furniture.service.UserService;
+import com.furniture.service.ReviewService;
 import com.furniture.mapper.OrderItemMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,11 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     private UserService userService;
     
+    @Autowired
+    private ReviewService reviewService;
+    
+
+
     @Override
     public Map<String, Object> getSalesStatistics(String startDate, String endDate) {
         Map<String, Object> result = new HashMap<>();
@@ -119,22 +125,25 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 按分类统计销量
         Map<String, Integer> salesByCategory = new HashMap<>();
         
+        // 获取所有分类
+        List<Category> categories = categoryService.findAll();
+        Map<Integer, String> categoryMap = new HashMap<>();
+        for (Category category : categories) {
+            categoryMap.put(category.getId(), category.getName());
+        }
+        
         completedOrders.forEach(order -> {
             if (order.getOrderItems() != null) {
                 order.getOrderItems().forEach(item -> {
-                    // 这里简化处理，实际应该根据产品ID获取分类
-                    // 暂时使用硬编码的分类
-                    String category = "其他";
-                    if (item.getProductName().contains("沙发") || item.getProductName().contains("茶几") || item.getProductName().contains("电视柜")) {
-                        category = "客厅家具";
-                    } else if (item.getProductName().contains("床") || item.getProductName().contains("衣柜") || item.getProductName().contains("床头柜")) {
-                        category = "卧室家具";
-                    } else if (item.getProductName().contains("书桌") || item.getProductName().contains("办公椅") || item.getProductName().contains("文件柜")) {
-                        category = "办公家具";
+                    // 根据产品ID获取分类
+                    Product product = productService.findById(item.getProductId());
+                    String categoryName = "其他";
+                    if (product != null && product.getCategoryId() != null) {
+                        categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
                     }
                     
                     int quantity = item.getQuantity();
-                    salesByCategory.put(category, salesByCategory.getOrDefault(category, 0) + quantity);
+                    salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + quantity);
                 });
             }
         });
@@ -183,14 +192,40 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .sum();
         
         // 计算低库存商品（库存小于10）
-        int lowStockProducts = (int) products.stream()
+        List<Product> lowStockProductList = products.stream()
                 .filter(product -> (product.getStock() != null && product.getStock() < 10))
-                .count();
+                .collect(Collectors.toList());
+        int lowStockProducts = lowStockProductList.size();
         
         // 计算缺货商品（库存为0）
-        int outOfStockProducts = (int) products.stream()
+        List<Product> outOfStockProductList = products.stream()
                 .filter(product -> (product.getStock() != null && product.getStock() == 0))
-                .count();
+                .collect(Collectors.toList());
+        int outOfStockProducts = outOfStockProductList.size();
+        
+        // 低库存商品列表
+        List<Map<String, Object>> lowStockProductDetails = lowStockProductList.stream()
+                .map(product -> {
+                    Map<String, Object> productInfo = new HashMap<>();
+                    productInfo.put("id", product.getId());
+                    productInfo.put("name", product.getName());
+                    productInfo.put("stock", product.getStock());
+                    productInfo.put("categoryId", product.getCategoryId());
+                    return productInfo;
+                })
+                .collect(Collectors.toList());
+        
+        // 缺货商品列表
+        List<Map<String, Object>> outOfStockProductDetails = outOfStockProductList.stream()
+                .map(product -> {
+                    Map<String, Object> productInfo = new HashMap<>();
+                    productInfo.put("id", product.getId());
+                    productInfo.put("name", product.getName());
+                    productInfo.put("stock", product.getStock());
+                    productInfo.put("categoryId", product.getCategoryId());
+                    return productInfo;
+                })
+                .collect(Collectors.toList());
         
         // 按销量排序的产品列表（TOP10）
         List<Map<String, Object>> topSellingProducts = products.stream()
@@ -206,48 +241,50 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .limit(10)
                 .collect(Collectors.toList());
         
-        // 商品评分统计（使用真实数据）
+        // 商品评分统计（基于订单的评分）
         Map<String, Object> ratingStatistics = new HashMap<>();
+        // 获取所有评价
+        List<Review> reviews = reviewService.findAll();
         
         // 计算平均评分
-        double averageRating = products.stream()
-                .filter(product -> product.getRating() != null)
-                .mapToDouble(product -> product.getRating().doubleValue())
+        double averageRating = reviews.stream()
+                .filter(review -> review.getRating() != null)
+                .mapToDouble(review -> review.getRating().doubleValue())
                 .average()
                 .orElse(0.0);
         
-        // 计算好评率（评分大于等于4的产品占比）
-        long totalRatedProducts = products.stream()
-                .filter(product -> product.getRating() != null)
+        // 计算好评率（评分大于等于4的评价占比）
+        long totalReviews = reviews.stream()
+                .filter(review -> review.getRating() != null)
                 .count();
-        long positiveProducts = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() >= 4)
+        long positiveReviews = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() >= 4)
                 .count();
-        double positiveRate = totalRatedProducts > 0 ? (double) positiveProducts / totalRatedProducts : 0.0;
+        double positiveRate = totalReviews > 0 ? (double) positiveReviews / totalReviews : 0.0;
         
         // 计算各星级的占比
-        long fiveStar = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() == 5)
+        long fiveStar = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() == 5)
                 .count();
-        long fourStar = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() == 4)
+        long fourStar = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() == 4)
                 .count();
-        long threeStar = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() == 3)
+        long threeStar = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() == 3)
                 .count();
-        long twoStar = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() == 2)
+        long twoStar = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() == 2)
                 .count();
-        long oneStar = products.stream()
-                .filter(product -> product.getRating() != null && product.getRating().doubleValue() == 1)
+        long oneStar = reviews.stream()
+                .filter(review -> review.getRating() != null && review.getRating() == 1)
                 .count();
         
         // 转换为百分比
-        int fiveStarPercent = totalRatedProducts > 0 ? (int) (fiveStar * 100 / totalRatedProducts) : 0;
-        int fourStarPercent = totalRatedProducts > 0 ? (int) (fourStar * 100 / totalRatedProducts) : 0;
-        int threeStarPercent = totalRatedProducts > 0 ? (int) (threeStar * 100 / totalRatedProducts) : 0;
-        int twoStarPercent = totalRatedProducts > 0 ? (int) (twoStar * 100 / totalRatedProducts) : 0;
-        int oneStarPercent = totalRatedProducts > 0 ? (int) (oneStar * 100 / totalRatedProducts) : 0;
+        int fiveStarPercent = totalReviews > 0 ? (int) (fiveStar * 100 / totalReviews) : 0;
+        int fourStarPercent = totalReviews > 0 ? (int) (fourStar * 100 / totalReviews) : 0;
+        int threeStarPercent = totalReviews > 0 ? (int) (threeStar * 100 / totalReviews) : 0;
+        int twoStarPercent = totalReviews > 0 ? (int) (twoStar * 100 / totalReviews) : 0;
+        int oneStarPercent = totalReviews > 0 ? (int) (oneStar * 100 / totalReviews) : 0;
         
         ratingStatistics.put("averageRating", Math.round(averageRating * 10) / 10.0); // 保留一位小数
         ratingStatistics.put("positiveRate", Math.round(positiveRate * 100) / 100.0); // 保留两位小数
@@ -256,12 +293,16 @@ public class StatisticsServiceImpl implements StatisticsService {
         ratingStatistics.put("threeStar", threeStarPercent);
         ratingStatistics.put("twoStar", twoStarPercent);
         ratingStatistics.put("oneStar", oneStarPercent);
+        ratingStatistics.put("totalReviews", totalReviews); // 总评价数
+        ratingStatistics.put("totalReviews", totalReviews); // 总评价数
         
         result.put("totalProducts", totalProducts);
         result.put("productsByCategory", productsByCategory);
         result.put("totalStock", totalStock);
         result.put("lowStockProducts", lowStockProducts);
         result.put("outOfStockProducts", outOfStockProducts);
+        result.put("lowStockProductDetails", lowStockProductDetails);
+        result.put("outOfStockProductDetails", outOfStockProductDetails);
         result.put("topSellingProducts", topSellingProducts);
         result.put("ratingStatistics", ratingStatistics);
         
@@ -674,5 +715,58 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .sorted((a, b) -> Integer.compare((int) b.get("sales"), (int) a.get("sales")))
                 .limit(5)
                 .collect(java.util.stream.Collectors.toList());
+    }
+    
+    @Override
+    public List<Map<String, Object>> getTopCategoriesBySales(int limit) {
+        // 获取所有订单
+        List<Order> orders = orderService.findAll();
+        
+        // 过滤已完成的订单
+        List<Order> completedOrders = orders.stream()
+                .filter(order -> order.getStatus() == 3) // 只统计已完成的订单
+                .collect(Collectors.toList());
+        
+        // 按分类统计销量
+        Map<String, Integer> salesByCategory = new HashMap<>();
+        Map<String, Integer> categoryIdMap = new HashMap<>();
+        
+        // 获取所有分类
+        List<Category> categories = categoryService.findAll();
+        Map<Integer, String> categoryMap = new HashMap<>();
+        for (Category category : categories) {
+            categoryMap.put(category.getId(), category.getName());
+        }
+        
+        completedOrders.forEach(order -> {
+            if (order.getOrderItems() != null) {
+                order.getOrderItems().forEach(item -> {
+                    // 根据产品ID获取分类
+                    Product product = productService.findById(item.getProductId());
+                    if (product != null && product.getCategoryId() != null) {
+                        String categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
+                        int quantity = item.getQuantity() != null ? item.getQuantity() : 0;
+                        salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + quantity);
+                        // 只在第一次遇到该分类名称时设置分类ID，避免覆盖
+                        if (!categoryIdMap.containsKey(categoryName)) {
+                            categoryIdMap.put(categoryName, product.getCategoryId());
+                        }
+                    }
+                });
+            }
+        });
+        
+        // 按销量排序，返回前limit个
+        return salesByCategory.entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> categoryInfo = new HashMap<>();
+                    categoryInfo.put("id", categoryIdMap.get(entry.getKey()));
+                    categoryInfo.put("name", entry.getKey());
+                    categoryInfo.put("sales", entry.getValue());
+                    return categoryInfo;
+                })
+                .sorted((a, b) -> Integer.compare((int) b.get("sales"), (int) a.get("sales")))
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 }

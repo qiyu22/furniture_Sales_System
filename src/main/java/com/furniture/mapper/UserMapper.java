@@ -35,6 +35,6 @@ public interface UserMapper {
     // 取消收藏
     void removeFavorite(@Param("userId") Integer userId, @Param("furnitureId") Integer furnitureId);
     
-    // 查询用户收藏的家具ID列表
+    // 查询用户收藏的家居ID列表
     List<Integer> getFavoriteFurnitureIds(@Param("userId") Integer userId);
 }

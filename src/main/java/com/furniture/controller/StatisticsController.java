@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @Api(tags = "数据统计")
@@ -83,5 +84,11 @@ public class StatisticsController {
     @GetMapping("/product-sales")
     public java.util.List<java.util.Map<String, Object>> getProductSalesRanking() {
         return statisticsService.getProductSalesRanking();
+    }
+    
+    @ApiOperation("获取销量最高的分类")
+    @GetMapping("/top-categories")
+    public List<Map<String, Object>> getTopCategoriesBySales(@ApiParam("返回数量") @RequestParam(defaultValue = "6") int limit) {
+        return statisticsService.getTopCategoriesBySales(limit);
     }
 }

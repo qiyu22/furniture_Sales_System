@@ -26,8 +26,8 @@ public class SwaggerConfig {
     
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("家具销售系统API")
-                .description("家具销售系统后端API文档")
+                .title("家居销售系统API")
+                .description("家居销售系统后端API文档")
                 .version("1.0.0")
                 .build();
     }

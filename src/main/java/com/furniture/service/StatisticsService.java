@@ -73,4 +73,11 @@ public interface StatisticsService {
      * @return 产品销量排行数据
      */
     java.util.List<java.util.Map<String, Object>> getProductSalesRanking();
+    
+    /**
+     * 获取销量最高的分类
+     * @param limit 限制数量
+     * @return 销量最高的分类数据
+     */
+    java.util.List<java.util.Map<String, Object>> getTopCategoriesBySales(int limit);
 }

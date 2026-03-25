@@ -28,13 +28,51 @@
         SELECT * FROM carousel WHERE id = #{id}
     </select>
 
-    <!-- 获取所有轮播图 -->
-    <select id="findAll" resultType="com.furniture.entity.Carousel">
-        SELECT * FROM carousel ORDER BY sort_order ASC, id DESC
+    <!-- 轮播图结果映射，包含商品信息 -->
+    <resultMap id="CarouselWithProductResultMap" type="com.furniture.entity.Carousel">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="image" column="image"/>
+        <result property="productId" column="product_id"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <!-- 商品信息 -->
+        <result property="productName" column="p_name"/>
+        <result property="productPrice" column="p_price"/>
+        <result property="productOriginalPrice" column="p_original_price"/>
+        <result property="productSales" column="p_sales"/>
+        <result property="productRating" column="p_rating"/>
+    </resultMap>
+
+    <!-- 获取所有轮播图，包含商品信息 -->
+    <select id="findAll" resultMap="CarouselWithProductResultMap">
+        SELECT 
+            c.*,
+            p.name as p_name,
+            p.price as p_price,
+            p.original_price as p_original_price,
+            p.sales as p_sales,
+            p.rating as p_rating
+        FROM carousel c
+        LEFT JOIN product p ON c.product_id = p.id
+        ORDER BY c.sort_order ASC, c.id DESC
     </select>
 
-    <!-- 获取启用的轮播图 -->
-    <select id="findByStatus" parameterType="java.lang.Integer" resultType="com.furniture.entity.Carousel">
-        SELECT * FROM carousel WHERE status = #{status} ORDER BY sort_order ASC, id DESC
+    <!-- 获取启用的轮播图，包含商品信息 -->
+    <select id="findByStatus" parameterType="java.lang.Integer" resultMap="CarouselWithProductResultMap">
+        SELECT 
+            c.*,
+            p.name as p_name,
+            p.price as p_price,
+            p.original_price as p_original_price,
+            p.sales as p_sales,
+            p.rating as p_rating
+        FROM carousel c
+        LEFT JOIN product p ON c.product_id = p.id
+        WHERE c.status = #{status}
+        ORDER BY c.sort_order ASC, c.id DESC
     </select>
 </mapper>

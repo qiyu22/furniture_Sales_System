@@ -14,5 +14,10 @@ public class Carousel {
     private Integer status;
     private Date createdAt;
     private Date updatedAt;
+    // 关联的商品信息
+    private String productName;
+    private Double productPrice;
+    private Double productOriginalPrice;
+    private Integer productSales;
+    private Double productRating;
 }
-
