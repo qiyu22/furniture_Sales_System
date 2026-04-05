@@ -33,6 +33,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        // 放行OPTIONS请求
+        if (request.getMethod().equals("OPTIONS")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         String authorizationHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -81,12 +87,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (userId != null) {
                         request.setAttribute("userId", userId);
                     }
+                } else {
+                    // Token 无效，返回 401 错误
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Token expired or invalid\"}");
+                    return;
                 }
             } catch (Exception e) {
                 logger.error("Error processing JWT token: " + e.getMessage());
-                // 清除安全上下文，确保请求可以继续处理
+                // 清除安全上下文
                 SecurityContextHolder.clearContext();
+                // 返回 401 错误
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Token expired or invalid\"}");
+                return;
             }
+        }
+        
+        // 检查是否是需要认证的接口
+        String requestUri = request.getRequestURI();
+        boolean requiresAuth = false;
+        
+        // 检查是否是需要认证的接口
+        if (requestUri.startsWith("/api/addresses/") ||
+            requestUri.startsWith("/api/cart/") ||
+            requestUri.startsWith("/api/orders/") ||
+            requestUri.startsWith("/api/admin/") ||
+            requestUri.startsWith("/api/users/info")) {
+            requiresAuth = true;
+        }
+        
+        // 如果需要认证但没有token，返回401错误
+        if (requiresAuth && username == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\": \"Authentication required\"}");
+            return;
         }
         
         filterChain.doFilter(request, response);
