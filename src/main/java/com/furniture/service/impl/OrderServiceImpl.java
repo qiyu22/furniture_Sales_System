@@ -52,7 +52,11 @@ public class OrderServiceImpl implements OrderService {
 
         // 计算订单总价
         BigDecimal totalPrice = cartItems.stream()
-                .map(item -> item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity())))
+                .map(item -> {
+                    // 优先使用活动价格
+                    BigDecimal itemPrice = item.getProduct().getActivityPrice() != null ? item.getProduct().getActivityPrice() : item.getProduct().getPrice();
+                    return itemPrice.multiply(new BigDecimal(item.getQuantity()));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 创建订单
@@ -92,7 +96,8 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProductName(item.getProduct().getName());
             orderItem.setProductImage(item.getProduct().getImage());
             orderItem.setQuantity(item.getQuantity());
-            orderItem.setPrice(item.getProduct().getPrice());
+            // 优先使用活动价格
+            orderItem.setPrice(item.getProduct().getActivityPrice() != null ? item.getProduct().getActivityPrice() : item.getProduct().getPrice());
             orderItemMapper.insert(orderItem);
 
             // 减少库存

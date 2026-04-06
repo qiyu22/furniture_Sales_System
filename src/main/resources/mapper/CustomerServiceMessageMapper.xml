@@ -41,6 +41,6 @@
     <update id="updateStatusByUserId" parameterType="java.lang.Integer">
         UPDATE customer_service_message
         SET status = #{status}
-        WHERE user_id = #{userId}
+        WHERE user_id = #{userId} OR user_id = 0
     </update>
 </mapper>
