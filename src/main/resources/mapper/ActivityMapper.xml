@@ -30,6 +30,18 @@
             <result property="createdAt" column="p_created_at"/>
             <result property="updatedAt" column="p_updated_at"/>
         </association>
+        <!-- 关联活动信息 -->
+        <association property="activity" javaType="com.furniture.entity.Activity">
+            <id property="id" column="a_id"/>
+            <result property="title" column="a_title"/>
+            <result property="description" column="a_description"/>
+            <result property="startTime" column="a_start_time"/>
+            <result property="endTime" column="a_end_time"/>
+            <result property="type" column="a_type"/>
+            <result property="status" column="a_status"/>
+            <result property="createdAt" column="a_created_at"/>
+            <result property="updatedAt" column="a_updated_at"/>
+        </association>
     </resultMap>
     <!-- 查询所有活动 -->
     <select id="findAll" resultType="com.furniture.entity.Activity">
@@ -87,9 +99,12 @@
             p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
             p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
             p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
-            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at,
+            a.id as a_id, a.title as a_title, a.description as a_description, a.start_time as a_start_time, 
+            a.end_time as a_end_time, a.type as a_type, a.status as a_status, a.created_at as a_created_at, a.updated_at as a_updated_at
         FROM activity_product ap
         LEFT JOIN product p ON ap.product_id = p.id
+        LEFT JOIN activity a ON ap.activity_id = a.id
         WHERE ap.activity_id = #{activityId}
         ORDER BY ap.sort_order ASC
     </select>
@@ -113,7 +128,9 @@
             p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
             p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
             p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
-            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at,
+            a.id as a_id, a.title as a_title, a.description as a_description, a.start_time as a_start_time, 
+            a.end_time as a_end_time, a.type as a_type, a.status as a_status, a.created_at as a_created_at, a.updated_at as a_updated_at
         FROM activity_product ap
         LEFT JOIN product p ON ap.product_id = p.id
         LEFT JOIN activity a ON ap.activity_id = a.id
@@ -131,7 +148,9 @@
             p.id as p_id, p.name as p_name, p.category_id as p_category_id, p.brand_id as p_brand_id, 
             p.price as p_price, p.original_price as p_original_price, p.stock as p_stock, p.sales as p_sales, 
             p.rating as p_rating, p.description as p_description, p.specs as p_specs, p.image as p_image, 
-            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at
+            p.images as p_images, p.status as p_status, p.created_at as p_created_at, p.updated_at as p_updated_at,
+            a.id as a_id, a.title as a_title, a.description as a_description, a.start_time as a_start_time, 
+            a.end_time as a_end_time, a.type as a_type, a.status as a_status, a.created_at as a_created_at, a.updated_at as a_updated_at
         FROM activity_product ap
         LEFT JOIN product p ON ap.product_id = p.id
         LEFT JOIN activity a ON ap.activity_id = a.id

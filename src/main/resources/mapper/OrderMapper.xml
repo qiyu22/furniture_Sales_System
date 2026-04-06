@@ -42,4 +42,11 @@
     <delete id="delete" parameterType="java.lang.String">
         DELETE FROM orders WHERE id = #{id}
     </delete>
+    
+    <!-- 查询超时未付款的订单 -->
+    <select id="findTimeoutOrders" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders 
+        WHERE status = #{status} 
+        AND created_at &lt; #{timeoutTime}
+    </select>
 </mapper>

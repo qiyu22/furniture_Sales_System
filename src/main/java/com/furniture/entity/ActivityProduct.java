@@ -11,6 +11,7 @@ public class ActivityProduct {
     private Integer sortOrder;
     private Date createdAt;
     private Product product; // 关联的商品信息
+    private Activity activity; // 关联的活动信息
 
     // getter and setter methods
     public Integer getId() {
@@ -67,5 +68,13 @@ public class ActivityProduct {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    public void setActivity(Activity activity) {
+        this.activity = activity;
     }
 }

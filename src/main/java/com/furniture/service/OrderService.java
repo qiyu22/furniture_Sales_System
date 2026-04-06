@@ -25,4 +25,7 @@ public interface OrderService {
     
     // 根据订单号查询订单
     Order findByOrderId(String orderId);
+    
+    // 自动取消超时未付款的订单
+    int autoCancelTimeoutOrders(int hours);
 }

@@ -12,6 +12,7 @@ public class Product {
     private Integer brandId; // 品牌ID
     private BigDecimal price; // 价格
     private BigDecimal originalPrice; // 原价
+    private BigDecimal activityPrice; // 活动价格
     private Integer stock; // 库存
     private Integer sales; // 销量
     private BigDecimal rating; // 评分

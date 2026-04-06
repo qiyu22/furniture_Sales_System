@@ -272,4 +272,29 @@ public class OrderServiceImpl implements OrderService {
     public Order findByOrderId(String orderId) {
         return findById(orderId);
     }
+
+    @Override
+    @Transactional
+    public int autoCancelTimeoutOrders(int hours) {
+        // 计算超时时间
+        Date timeoutTime = new Date(System.currentTimeMillis() - hours * 60 * 60 * 1000);
+        
+        // 查询超时未付款的订单
+        List<Order> timeoutOrders = orderMapper.findTimeoutOrders(0, timeoutTime);
+        int cancelledCount = 0;
+        
+        // 取消超时订单
+        for (Order order : timeoutOrders) {
+            try {
+                // 更新订单状态为已取消
+                updateStatus(order.getId(), 4);
+                cancelledCount++;
+            } catch (Exception e) {
+                System.err.println("取消订单失败: " + order.getId() + ", 错误: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        return cancelledCount;
+    }
 }

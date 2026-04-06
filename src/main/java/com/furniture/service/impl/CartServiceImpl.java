@@ -32,15 +32,7 @@ public class CartServiceImpl implements CartService {
         // 加载产品信息
         for (CartItem item : cartItems) {
             Product product = productService.findById(item.getProductId());
-            // 加载产品的活动价格
-            List<ActivityProduct> activityProducts = activityService.findProductsByProductId(item.getProductId());
-            if (!activityProducts.isEmpty()) {
-                // 如果有活动价格，设置到产品的活动价格字段
-                // 这里简化处理，取第一个活动价格
-                // 实际应用中可能需要根据活动类型和时间进行选择
-                product.setOriginalPrice(product.getPrice()); // 保存原价
-                product.setPrice(activityProducts.get(0).getActivityPrice()); // 设置活动价格
-            }
+            // 产品服务已经处理了活动价格，直接使用即可
             item.setProduct(product);
         }
         return cartItems;

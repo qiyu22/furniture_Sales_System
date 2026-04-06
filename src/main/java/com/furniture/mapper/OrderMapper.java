@@ -25,4 +25,7 @@ public interface OrderMapper {
     
     // 更新订单
     void update(Order order);
+    
+    // 查询超时未付款的订单
+    List<Order> findTimeoutOrders(@Param("status") Integer status, @Param("timeoutTime") java.util.Date timeoutTime);
 }
