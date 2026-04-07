@@ -3,6 +3,7 @@ package com.furniture.service.impl;
 import com.furniture.entity.Product;
 import com.furniture.entity.ActivityProduct;
 import com.furniture.mapper.ProductMapper;
+import com.furniture.mapper.UserBehaviorMapper;
 import com.furniture.service.ProductService;
 import com.furniture.service.RecommendationService;
 import com.furniture.service.ActivityService;
@@ -19,6 +20,9 @@ public class ProductServiceImpl implements ProductService {
     
     @Autowired
     private ProductMapper productMapper;
+    
+    @Autowired
+    private UserBehaviorMapper userBehaviorMapper;
     
     @Autowired
     private RecommendationService recommendationService;
@@ -146,6 +150,9 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public void delete(Integer id) {
+        // 先删除相关的用户行为记录
+        userBehaviorMapper.deleteByProductId(id);
+        // 再删除产品
         productMapper.delete(id);
     }
     

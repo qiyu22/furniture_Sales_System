@@ -1,6 +1,7 @@
 package com.furniture.mapper;
 
 import com.furniture.entity.UserBehavior;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -24,4 +25,8 @@ public interface UserBehaviorMapper {
     // 统计用户对商品的行为次数
     @Select("SELECT COUNT(*) FROM user_behavior WHERE user_id = #{userId} AND product_id = #{productId} AND behavior_type = #{behaviorType}")
     int countByUserIdAndProductIdAndType(Integer userId, Integer productId, String behaviorType);
+
+    // 根据产品ID删除用户行为记录
+    @Delete("DELETE FROM user_behavior WHERE product_id = #{productId}")
+    int deleteByProductId(Integer productId);
 }
