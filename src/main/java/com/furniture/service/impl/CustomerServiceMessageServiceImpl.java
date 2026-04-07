@@ -17,10 +17,11 @@ public class CustomerServiceMessageServiceImpl implements CustomerServiceMessage
     private CustomerServiceMessageMapper customerServiceMessageMapper;
 
     @Override
-    public void sendMessage(Integer userId, String userName, String message) {
+    public void sendMessage(Integer senderId, String senderName, Integer recipientId, String message) {
         CustomerServiceMessage customerServiceMessage = new CustomerServiceMessage();
-        customerServiceMessage.setUserId(userId);
-        customerServiceMessage.setUserName(userName);
+        customerServiceMessage.setSenderId(senderId);
+        customerServiceMessage.setSenderName(senderName);
+        customerServiceMessage.setRecipientId(recipientId);
         customerServiceMessage.setMessage(message);
         customerServiceMessage.setStatus(0);
         customerServiceMessage.setCreatedAt(LocalDateTime.now());

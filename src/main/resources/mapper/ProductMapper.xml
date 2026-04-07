@@ -14,19 +14,19 @@
     <select id="findAllWithSort" parameterType="java.lang.String" resultType="com.furniture.entity.Product">
         SELECT * FROM product
         <choose>
-            <when test="sortBy == 'sales_desc'">
+            <when test='sortBy == "sales_desc"'>
                 ORDER BY sales DESC
             </when>
-            <when test="sortBy == 'price_asc'">
+            <when test='sortBy == "price_asc"'>
                 ORDER BY price ASC
             </when>
-            <when test="sortBy == 'price_desc'">
+            <when test='sortBy == "price_desc"'>
                 ORDER BY price DESC
             </when>
-            <when test="sortBy == 'rating_desc'">
+            <when test='sortBy == "rating_desc"'>
                 ORDER BY rating DESC
             </when>
-            <when test="sortBy == 'latest'">
+            <when test='sortBy == "latest"'>
                 ORDER BY created_at DESC
             </when>
             <otherwise>
@@ -84,7 +84,7 @@
     <!-- 更新产品 -->
     <update id="update" parameterType="com.furniture.entity.Product">
         UPDATE product
-        SET name = #{name}, category_id = #{categoryId}, brand_id = #{brandId}, price = #{price}, original_price = #{originalPrice}, stock = #{stock}, sales = #{sales}, description = #{description}, specs = #{specs}, size = #{size}, image = #{image}, images = #{images}, status = #{status}, updated_at = #{updatedAt}
+        SET name = #{name}, category_id = #{categoryId}, brand_id = #{brandId}, price = #{price}, original_price = #{originalPrice}, stock = #{stock}, sales = #{sales}, rating = #{rating}, description = #{description}, specs = #{specs}, size = #{size}, image = #{image}, images = #{images}, status = #{status}, updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>
 
@@ -168,19 +168,19 @@
     <!-- 排序条件 -->
     <sql id="sortCondition">
         <choose>
-            <when test="sortBy == 'sales_desc'">
+            <when test='sortBy == "sales_desc"'>
                 ORDER BY sales DESC
             </when>
-            <when test="sortBy == 'price_asc'">
+            <when test='sortBy == "price_asc"'>
                 ORDER BY price ASC
             </when>
-            <when test="sortBy == 'price_desc'">
+            <when test='sortBy == "price_desc"'>
                 ORDER BY price DESC
             </when>
-            <when test="sortBy == 'rating_desc'">
+            <when test='sortBy == "rating_desc"'>
                 ORDER BY rating DESC
             </when>
-            <when test="sortBy == 'latest'">
+            <when test='sortBy == "latest"'>
                 ORDER BY created_at DESC
             </when>
             <otherwise>
@@ -195,7 +195,7 @@
         WHERE status = 1 OR status IS NULL
         <include refid="priceRangeCondition" />
         <include refid="sortCondition" />
-        LIMIT #{limit} OFFSET #{offset}
+        LIMIT #{size} OFFSET #{offset}
     </select>
     
     <!-- 统计所有产品数量（支持价格筛选） -->
@@ -214,7 +214,7 @@
         </if>
         <include refid="priceRangeCondition" />
         <include refid="sortCondition" />
-        LIMIT #{limit} OFFSET #{offset}
+        LIMIT #{size} OFFSET #{offset}
     </select>
     
     <!-- 统计指定分类的产品数量（支持价格筛选） -->

@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,10 +23,11 @@ public class CustomerServiceMessageController {
 
     @ApiOperation("发送消息")
     @PostMapping("/send")
-    public void sendMessage(@ApiParam("用户ID") @RequestParam Integer userId,
-                           @ApiParam("用户名") @RequestParam String userName,
+    public void sendMessage(@ApiParam("发送者ID") @RequestParam Integer senderId,
+                           @ApiParam("发送者名称") @RequestParam String senderName,
+                           @ApiParam("接收者ID") @RequestParam Integer recipientId,
                            @ApiParam("消息内容") @RequestParam String message) {
-        customerServiceMessageService.sendMessage(userId, userName, message);
+        customerServiceMessageService.sendMessage(senderId, senderName, recipientId, message);
     }
 
     @ApiOperation("获取用户消息")

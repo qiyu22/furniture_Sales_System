@@ -4,7 +4,7 @@ import com.furniture.entity.CustomerServiceMessage;
 import java.util.List;
 
 public interface CustomerServiceMessageService {
-    void sendMessage(Integer userId, String userName, String message);
+    void sendMessage(Integer senderId, String senderName, Integer recipientId, String message);
     List<CustomerServiceMessage> getMessagesByUserId(Integer userId);
     List<CustomerServiceMessage> getAllMessagesByUserId(Integer userId);
     List<CustomerServiceMessage> getAllMessages();

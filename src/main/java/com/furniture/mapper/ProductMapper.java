@@ -51,13 +51,13 @@ public interface ProductMapper {
     List<Product> findHotProducts();
     
     // 查询所有产品（支持分页、排序和价格筛选）
-    List<Product> findAllWithPagination(@Param("sortBy") String sortBy, @Param("offset") int offset, @Param("limit") int limit, @Param("priceRange") Integer priceRange);
+    List<Product> findAllWithPagination(@Param("sortBy") String sortBy, @Param("offset") int offset, @Param("size") int size, @Param("priceRange") Integer priceRange);
     
     // 统计所有产品数量（支持价格筛选）
     int countAll(@Param("priceRange") Integer priceRange);
     
     // 根据分类ID查询产品（支持分页、排序和价格筛选）
-    List<Product> findByCategoryIdWithPagination(@Param("categoryId") Integer categoryId, @Param("sortBy") String sortBy, @Param("offset") int offset, @Param("limit") int limit, @Param("priceRange") Integer priceRange);
+    List<Product> findByCategoryIdWithPagination(@Param("categoryId") Integer categoryId, @Param("sortBy") String sortBy, @Param("offset") int offset, @Param("size") int size, @Param("priceRange") Integer priceRange);
     
     // 统计指定分类的产品数量（支持价格筛选）
     int countByCategoryId(@Param("categoryId") Integer categoryId, @Param("priceRange") Integer priceRange);

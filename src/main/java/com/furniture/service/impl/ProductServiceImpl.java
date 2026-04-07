@@ -9,6 +9,7 @@ import com.furniture.service.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -111,6 +112,9 @@ public class ProductServiceImpl implements ProductService {
         }
         if (product.getStock() == null) {
             product.setStock(0);
+        }
+        if (product.getRating() == null) {
+            product.setRating(BigDecimal.ZERO); // 默认0颗星
         }
         if (product.getStatus() == null) {
             product.setStatus(1); // 默认上架

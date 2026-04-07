@@ -3,21 +3,22 @@
 <mapper namespace="com.furniture.mapper.CustomerServiceMessageMapper">
     <resultMap id="CustomerServiceMessageMap" type="com.furniture.entity.CustomerServiceMessage">
         <id property="id" column="id"/>
-        <result property="userId" column="user_id"/>
-        <result property="userName" column="user_name"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="senderName" column="sender_name"/>
+        <result property="recipientId" column="recipient_id"/>
         <result property="message" column="message"/>
         <result property="status" column="status"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
     
     <insert id="insert" parameterType="com.furniture.entity.CustomerServiceMessage">
-        INSERT INTO customer_service_message (user_id, user_name, message, status, created_at)
-        VALUES (#{userId}, #{userName}, #{message}, #{status}, #{createdAt})
+        INSERT INTO customer_service_message (sender_id, sender_name, recipient_id, message, status, created_at)
+        VALUES (#{senderId}, #{senderName}, #{recipientId}, #{message}, #{status}, #{createdAt})
     </insert>
     
     <select id="findByUserId" parameterType="java.lang.Integer" resultType="com.furniture.entity.CustomerServiceMessage">
         SELECT * FROM customer_service_message
-        WHERE user_id = #{userId} OR user_id = 0
+        WHERE sender_id = #{userId} OR recipient_id = #{userId}
         ORDER BY created_at ASC
     </select>
     
@@ -28,7 +29,7 @@
     
     <select id="findAllByUserId" parameterType="java.lang.Integer" resultMap="CustomerServiceMessageMap">
         SELECT * FROM customer_service_message
-        WHERE user_id = #{userId} OR user_id = 0
+        WHERE sender_id = #{userId} OR recipient_id = #{userId}
         ORDER BY created_at ASC
     </select>
     
@@ -41,6 +42,6 @@
     <update id="updateStatusByUserId" parameterType="java.lang.Integer">
         UPDATE customer_service_message
         SET status = #{status}
-        WHERE user_id = #{userId} OR user_id = 0
+        WHERE sender_id = #{userId} OR recipient_id = #{userId}
     </update>
 </mapper>
