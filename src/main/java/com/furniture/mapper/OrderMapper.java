@@ -17,8 +17,26 @@ public interface OrderMapper {
     // 根据用户ID查询订单
     List<Order> findByUserId(@Param("userId") Integer userId);
     
+    // 根据用户ID分页查询订单
+    List<Order> findByUserIdWithPagination(@Param("userId") Integer userId, @Param("offset") Integer offset, @Param("limit") Integer limit);
+    
     // 查询所有订单
     List<Order> findAll();
+    
+    // 分页查询所有订单
+    List<Order> findAllWithPagination(@Param("offset") Integer offset, @Param("limit") Integer limit);
+    
+    // 按状态分页查询所有订单
+    List<Order> findAllWithPaginationAndStatus(@Param("offset") Integer offset, @Param("limit") Integer limit, @Param("status") Integer status);
+    
+    // 查询所有订单总数
+    int countAll();
+
+    // 根据用户ID查询订单总数
+    int countByUserId(@Param("userId") Integer userId);
+    
+    // 按状态查询订单总数
+    int countAllByStatus(@Param("status") Integer status);
     
     // 更新订单状态
     void updateStatus(@Param("orderId") String orderId, @Param("status") Integer status);

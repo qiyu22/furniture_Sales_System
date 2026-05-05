@@ -7,7 +7,27 @@
 <mapper namespace="com.furniture.mapper.OrderMapper">
     <!-- 查询所有订单 -->
     <select id="findAll" resultType="com.furniture.entity.Order">
-        SELECT * FROM orders
+        SELECT * FROM orders ORDER BY created_at DESC
+    </select>
+    
+    <!-- 分页查询所有订单 -->
+    <select id="findAllWithPagination" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders ORDER BY created_at DESC LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 按状态分页查询所有订单 -->
+    <select id="findAllWithPaginationAndStatus" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders WHERE status = #{status} ORDER BY created_at DESC LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 查询所有订单总数 -->
+    <select id="countAll" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM orders
+    </select>
+    
+    <!-- 按状态查询订单总数 -->
+    <select id="countAllByStatus" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM orders WHERE status = #{status}
     </select>
 
     <!-- 根据ID查询订单 -->
@@ -17,19 +37,32 @@
 
     <!-- 根据用户ID查询订单 -->
     <select id="findByUserId" parameterType="java.lang.Integer" resultType="com.furniture.entity.Order">
-        SELECT * FROM orders WHERE user_id = #{userId}
+        SELECT * FROM orders WHERE user_id = #{userId} ORDER BY created_at DESC
+    </select>
+    
+    <!-- 根据用户ID分页查询订单 -->
+    <select id="findByUserIdWithPagination" resultType="com.furniture.entity.Order">
+        SELECT * FROM orders WHERE user_id = #{userId} ORDER BY created_at DESC LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 根据用户ID查询订单总数 -->
+    <select id="countByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM orders WHERE user_id = #{userId}
     </select>
 
     <!-- 插入订单 -->
     <insert id="insert" parameterType="com.furniture.entity.Order">
-        INSERT INTO orders (id, user_id, total_price, actual_price, status, payment_method, shipping_address, shipping_name, shipping_phone, created_at, updated_at)
-        VALUES (#{id}, #{userId}, #{totalPrice}, #{totalPrice}, #{status}, #{paymentMethod}, #{shippingAddress}, #{shippingName}, #{shippingPhone}, #{createdAt}, #{updatedAt})
+        INSERT INTO orders (id, user_id, total_price, actual_price, status, payment_method, payment_time, shipping_address, shipping_name, shipping_phone, shipping_time, finish_time, created_at, updated_at)
+        VALUES (#{id}, #{userId}, #{totalPrice}, #{actualPrice}, #{status}, #{paymentMethod}, #{paymentTime}, #{shippingAddress}, #{shippingName}, #{shippingPhone}, #{shippingTime}, #{finishTime}, #{createdAt}, #{updatedAt})
     </insert>
 
     <!-- 更新订单 -->
     <update id="update" parameterType="com.furniture.entity.Order">
         UPDATE orders
-        SET total_price = #{totalPrice}, actual_price = #{actualPrice}, payment_method = #{paymentMethod}, status = #{status}, shipping_address = #{shippingAddress}, shipping_name = #{shippingName}, shipping_phone = #{shippingPhone}, updated_at = #{updatedAt}
+        SET total_price = #{totalPrice}, actual_price = #{actualPrice}, payment_method = #{paymentMethod}, 
+            payment_time = #{paymentTime}, status = #{status}, shipping_address = #{shippingAddress}, 
+            shipping_name = #{shippingName}, shipping_phone = #{shippingPhone}, 
+            shipping_time = #{shippingTime}, finish_time = #{finishTime}, updated_at = #{updatedAt}
         WHERE id = #{id}
     </update>
 

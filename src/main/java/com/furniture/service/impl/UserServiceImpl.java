@@ -8,6 +8,8 @@ import com.furniture.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
     
     @Autowired
     private UserMapper userMapper;
@@ -43,14 +46,41 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public void register(User user) {
+    public Map<String, Object> register(User user) {
+        logger.debug("开始注册用户: {}", user.getUsername());
+        Map<String, Object> result = new HashMap<>();
+        
+        // 检查用户名是否已存在
+        User existingUser = userMapper.findByUsername(user.getUsername());
+        if (existingUser != null) {
+            logger.debug("用户名已存在: {}", user.getUsername());
+            result.put("success", false);
+            result.put("message", "用户名已存在");
+            return result;
+        }
+        
+        // 确保必填字段有值
+        if (user.getName() == null || user.getName().trim().isEmpty()) {
+            user.setName(user.getUsername()); // 使用用户名作为姓名
+            logger.debug("使用用户名作为姓名: {}", user.getUsername());
+        }
+        
         // 密码加密
         String encryptedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
         user.setPassword(encryptedPassword);
-        user.setRole("USER"); // 默认角色为普通用户
+        if (user.getRole() == null || user.getRole().trim().isEmpty()) {
+            user.setRole("USER");
+        }
+        user.setStatus(1);
         user.setCreatedAt(new Date());
         user.setUpdatedAt(new Date());
+        
+        logger.debug("准备插入用户数据: {}", user.getUsername());
         userMapper.insert(user);
+        logger.debug("用户注册成功: {}", user.getUsername());
+        
+        result.put("success", true);
+        return result;
     }
     
     @Override

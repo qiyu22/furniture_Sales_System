@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.entity.Carousel;
 import com.furniture.service.CarouselService;
+import com.furniture.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,8 +18,9 @@ public class CarouselListController {
     private CarouselService carouselService;
 
     @GetMapping("/list")
-    public List<Carousel> getCarouselList() {
+    public Result getCarouselList() {
         // 返回启用的轮播图
-        return carouselService.findByStatus(1);
+        List<Carousel> carousels = carouselService.findByStatus(1);
+        return Result.success(carousels);
     }
 }

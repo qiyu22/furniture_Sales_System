@@ -3,6 +3,7 @@ package com.furniture.controller;
 import com.furniture.entity.Address;
 import com.furniture.service.AddressService;
 import com.furniture.utils.JwtUtils;
+import com.furniture.utils.Result;
 import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 
 @Api(tags = "地址管理")
@@ -36,54 +38,59 @@ public class AddressController {
     
     @ApiOperation("获取用户地址列表")
     @GetMapping
-    public List<Address> getUserAddresses(HttpServletRequest request) {
+    public Result getUserAddresses(HttpServletRequest request) {
         Integer userId = getUserId(request);
         if (userId == null) {
-            return java.util.Collections.emptyList();
+            return Result.success(Collections.emptyList());
         }
-        return addressService.findByUserId(userId);
+        List<Address> addresses = addressService.findByUserId(userId);
+        return Result.success(addresses);
     }
     
     @ApiOperation("添加地址")
     @PostMapping
-    public void addAddress(@ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
+    public Result addAddress(@ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
         Integer userId = getUserId(request);
         if (userId == null) {
-            throw new RuntimeException("用户未登录");
+            return Result.error("用户未登录");
         }
         address.setUserId(userId);
         addressService.add(address);
+        return Result.success("添加成功");
     }
     
     @ApiOperation("更新地址")
     @PutMapping("/{id}")
-    public void updateAddress(@ApiParam("地址ID") @PathVariable Integer id, @ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
+    public Result updateAddress(@ApiParam("地址ID") @PathVariable Integer id, @ApiParam("地址信息") @RequestBody Address address, HttpServletRequest request) {
         Integer userId = getUserId(request);
         if (userId == null) {
-            throw new RuntimeException("用户未登录");
+            return Result.error("用户未登录");
         }
         address.setId(id);
         address.setUserId(userId);
         addressService.update(address);
+        return Result.success("更新成功");
     }
     
     @ApiOperation("删除地址")
     @DeleteMapping("/{id}")
-    public void deleteAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
+    public Result deleteAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
         Integer userId = getUserId(request);
         if (userId == null) {
-            throw new RuntimeException("用户未登录");
+            return Result.error("用户未登录");
         }
         addressService.delete(id);
+        return Result.success("删除成功");
     }
     
     @ApiOperation("设置默认地址")
     @PutMapping("/{id}/default")
-    public void setDefaultAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
+    public Result setDefaultAddress(@ApiParam("地址ID") @PathVariable Integer id, HttpServletRequest request) {
         Integer userId = getUserId(request);
         if (userId == null) {
-            throw new RuntimeException("用户未登录");
+            return Result.error("用户未登录");
         }
         addressService.setDefault(id, userId);
+        return Result.success("设置成功");
     }
 }

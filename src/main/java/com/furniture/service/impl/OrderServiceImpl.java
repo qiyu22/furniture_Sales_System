@@ -133,6 +133,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<Order> findByUserIdWithPagination(int userId, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        List<Order> orders = orderMapper.findByUserIdWithPagination(userId, offset, pageSize);
+        for (Order order : orders) {
+            List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+
+    @Override
     public List<Order> findAll() {
         List<Order> orders = orderMapper.findAll();
         for (Order order : orders) {
@@ -140,6 +151,35 @@ public class OrderServiceImpl implements OrderService {
             order.setOrderItems(orderItems);
         }
         return orders;
+    }
+
+    @Override
+    public List<Order> findAllWithPagination(int page, int pageSize, Integer status) {
+        int offset = (page - 1) * pageSize;
+        List<Order> orders;
+        if (status != null) {
+            orders = orderMapper.findAllWithPaginationAndStatus(offset, pageSize, status);
+        } else {
+            orders = orderMapper.findAllWithPagination(offset, pageSize);
+        }
+        for (Order order : orders) {
+            List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
+            order.setOrderItems(orderItems);
+        }
+        return orders;
+    }
+
+    @Override
+    public int countAll(Integer status) {
+        if (status != null) {
+            return orderMapper.countAllByStatus(status);
+        }
+        return orderMapper.countAll();
+    }
+
+    @Override
+    public int countByUserId(int userId) {
+        return orderMapper.countByUserId(userId);
     }
 
     @Override
@@ -181,8 +221,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void update(Order order) {
-        // 获取原始订单信息
         Order originalOrder = orderMapper.findById(order.getId());
+        if (originalOrder == null) return;
         int originalStatus = originalOrder.getStatus();
         int newStatus = order.getStatus();
         

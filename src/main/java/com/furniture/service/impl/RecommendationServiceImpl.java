@@ -37,6 +37,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     
     @Override
     public List<Product> recommendByUserId(Integer userId, int limit) {
+        // 先从数据库加载用户行为到内存（确保内存中有数据）
+        loadUserBehaviorsFromDatabase(userId);
+        
         // 获取用户历史行为
         Set<Integer> viewedProductIds = memoryStorage.getOrDefault(USER_VIEW_KEY + userId, new HashSet<>());
         Set<Integer> purchasedProductIds = memoryStorage.getOrDefault(USER_PURCHASE_KEY + userId, new HashSet<>());
@@ -49,6 +52,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         // 构建用户画像
         UserProfile userProfile = buildUserProfile(userId, viewedProductIds, purchasedProductIds);
         
+        // 检查用户是否有足够的行为数据，若没有则直接使用销量排行推荐
+        double totalPreference = userProfile.getCategoryPreferences().values().stream().mapToDouble(Double::doubleValue).sum();
+        if (totalPreference < 0.15) {
+            return productService.getHotProducts();
+        }
+
         // 基于多种策略推荐
         List<RecommendedProduct> recommendedProducts = new ArrayList<>();
         
@@ -283,18 +292,21 @@ public class RecommendationServiceImpl implements RecommendationService {
         List<RecommendedProduct> recommendations = new ArrayList<>();
         List<Product> allProducts = productService.findAll();
         
-        // 基于评分和假设的销量排序（实际应该从数据库获取销量）
+        // 基于销售量和评分排序
         allProducts.sort((p1, p2) -> {
-            double score1 = (p1.getRating() != null ? p1.getRating().doubleValue() : 0) * 0.7 + Math.random() * 0.3;
-            double score2 = (p2.getRating() != null ? p2.getRating().doubleValue() : 0) * 0.7 + Math.random() * 0.3;
+            double score1 = (p1.getSales() != null ? p1.getSales() : 0) * 0.5
+                          + (p1.getRating() != null ? p1.getRating().doubleValue() : 0) * 0.5;
+            double score2 = (p2.getSales() != null ? p2.getSales() : 0) * 0.5
+                          + (p2.getRating() != null ? p2.getRating().doubleValue() : 0) * 0.5;
             return Double.compare(score2, score1);
         });
         
         int count = 0;
         for (Product product : allProducts) {
-            // 不移除用户历史记录，避免推荐商品越来越少
             if (count < limit) {
-                recommendations.add(new RecommendedProduct(product, 0.5)); // 基础得分
+                double score = (product.getSales() != null ? product.getSales() : 0) * 0.5
+                             + (product.getRating() != null ? product.getRating().doubleValue() : 0) * 0.5;
+                recommendations.add(new RecommendedProduct(product, score));
                 count++;
             }
         }
@@ -348,8 +360,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (categoryPreference != null) {
             score += categoryPreference * 0.6;
         } else {
-            // 新用户默认分类偏好
-            score += 0.5 * 0.6;
+            // 未浏览过的分类给予较低的默认偏好，低于已浏览分类的实际权重
+            score += 0.05 * 0.6;
         }
         
         // 价格偏好得分

@@ -1,6 +1,7 @@
 package com.furniture.controller;
 
 import com.furniture.service.ReviewService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ public class ReviewLatestController {
 
     @ApiOperation("获取最新评价")
     @GetMapping("/latest")
-    public List<Map<String, Object>> getLatestReviews() {
-        return reviewService.findLatestWithProductName();
+    public Result getLatestReviews() {
+        List<Map<String, Object>> reviews = reviewService.findLatestWithProductName();
+        return Result.success(reviews);
     }
 }

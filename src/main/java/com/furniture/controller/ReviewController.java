@@ -3,6 +3,7 @@ package com.furniture.controller;
 import com.furniture.entity.Review;
 import com.furniture.service.ReviewService;
 import com.furniture.utils.JwtUtils;
+import com.furniture.utils.Result;
 import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,31 +47,33 @@ public class ReviewController {
     
     @ApiOperation("获取用户评价列表")
     @GetMapping("/user")
-    public List<Review> getUserReviews(HttpServletRequest request) {
+    public Result getUserReviews(HttpServletRequest request) {
         Integer userId = getUserId(request);
-        return reviewService.findByUserId(userId);
+        List<Review> reviews = reviewService.findByUserId(userId);
+        return Result.success(reviews);
     }
     
     @ApiOperation("更新评价")
     @PutMapping("/{id}")
-    public void updateReview(@ApiParam("评价ID") @PathVariable Integer id, @ApiParam("评价信息") @RequestBody Review review, HttpServletRequest request) {
+    public Result updateReview(@ApiParam("评价ID") @PathVariable Integer id, @ApiParam("评价信息") @RequestBody Review review, HttpServletRequest request) {
         Integer userId = getUserId(request);
         review.setId(id);
         review.setUserId(userId);
         reviewService.update(review);
+        return Result.success("更新成功");
     }
     
     @ApiOperation("删除评价")
     @DeleteMapping("/{id}")
-    public void deleteReview(@ApiParam("评价ID") @PathVariable Integer id, HttpServletRequest request) {
+    public Result deleteReview(@ApiParam("评价ID") @PathVariable Integer id, HttpServletRequest request) {
         getUserId(request); // 验证用户登录状态
         reviewService.delete(id);
+        return Result.success("删除成功");
     }
     
     @ApiOperation("上传评价图片")
     @PostMapping("/upload")
-    public Map<String, Object> uploadReviewImage(@RequestParam("file") MultipartFile file) {
-        Map<String, Object> result = new HashMap<>();
+    public Result uploadReviewImage(@RequestParam("file") MultipartFile file) {
         try {
             // 确保上传目录存在
             String uploadDir = "D:\\Code_items\\furniture_Sales_System\\frontend\\public\\review-images";
@@ -88,39 +91,42 @@ public class ReviewController {
             
             // 构建本地访问URL
             String imageUrl = "/review-images/" + fileName;
-            result.put("imageUrl", imageUrl);
-            result.put("success", true);
+            Map<String, String> data = new HashMap<>();
+            data.put("imageUrl", imageUrl);
+            return Result.success(data);
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "上传失败: " + e.getMessage());
+            return Result.error("上传失败: " + e.getMessage());
         }
-        return result;
     }
     
     @ApiOperation("获取所有评价")
     @GetMapping
-    public List<Map<String, Object>> getAllReviews() {
-        return reviewService.findAllWithProductName();
+    public Result getAllReviews() {
+        List<Map<String, Object>> reviews = reviewService.findAllWithProductName();
+        return Result.success(reviews);
     }
 
     @ApiOperation("获取评价详情")
     @GetMapping("/detail/{id}")
-    public Map<String, Object> getReviewById(@PathVariable Integer id) {
-        return reviewService.findByIdWithProductName(id);
+    public Result getReviewById(@PathVariable Integer id) {
+        Map<String, Object> review = reviewService.findByIdWithProductName(id);
+        return Result.success(review);
     }
 
     @ApiOperation("添加评价")
     @PostMapping
-    public void addReview(@RequestBody Review review, HttpServletRequest request) {
+    public Result addReview(@RequestBody Review review, HttpServletRequest request) {
         Integer userId = getUserId(request);
         review.setUserId(userId);
         reviewService.save(review);
+        return Result.success("添加成功");
     }
 
     @ApiOperation("根据商品ID获取评价")
     @GetMapping("/product/{productId}")
-    public List<Map<String, Object>> getReviewsByProductId(@PathVariable Integer productId) {
-        return reviewService.findByProductIdWithProductName(productId);
+    public Result getReviewsByProductId(@PathVariable Integer productId) {
+        List<Map<String, Object>> reviews = reviewService.findByProductIdWithProductName(productId);
+        return Result.success(reviews);
     }
 }

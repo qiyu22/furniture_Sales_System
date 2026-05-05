@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.entity.Category;
 import com.furniture.service.CategoryService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ public class CategoryListController {
     
     @ApiOperation("获取分类列表")
     @GetMapping("/list")
-    public List<Category> getCategoryList() {
-        return categoryService.findAll();
+    public Result getCategoryList() {
+        List<Category> categories = categoryService.findAll();
+        return Result.success(categories);
     }
 }

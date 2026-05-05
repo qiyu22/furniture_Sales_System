@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.service.UserFavoriteService;
 import com.furniture.utils.JwtUtils;
+import com.furniture.utils.Result;
 import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,87 +32,78 @@ public class UserFavoriteController {
             token = token.substring(7);
             try {
                 Claims claims = jwtUtils.parseToken(token);
-                return (Integer) claims.get("userId");
+                Object userIdObj = claims.get("userId");
+                if (userIdObj instanceof Number) {
+                    return ((Number) userIdObj).intValue();
+                }
+                return (Integer) userIdObj;
             } catch (Exception e) {
-                // 解析 token 失败，使用默认用户 ID
-                return 5;
+                return null;
             }
         }
-        // 没有 token，使用默认用户 ID
-        return 5;
+        return null;
     }
     
     @ApiOperation("添加收藏")
     @PostMapping("/add")
-    public Map<String, Object> addFavorite(
+    public Result addFavorite(
             @ApiParam("商品ID") @RequestParam Integer productId,
             HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
         try {
             Integer userId = getUserId(request);
+            if (userId == null) return Result.error("请先登录");
             userFavoriteService.addFavorite(userId, productId);
-            result.put("success", true);
-            result.put("message", "收藏成功");
+            return Result.success("收藏成功");
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "收藏失败: " + e.getMessage());
+            return Result.error("收藏失败: " + e.getMessage());
         }
-        return result;
     }
     
     @ApiOperation("取消收藏")
     @PostMapping("/remove")
-    public Map<String, Object> removeFavorite(
+    public Result removeFavorite(
             @ApiParam("商品ID") @RequestParam Integer productId,
             HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
         try {
             Integer userId = getUserId(request);
             userFavoriteService.removeFavorite(userId, productId);
-            result.put("success", true);
-            result.put("message", "取消收藏成功");
+            return Result.success("取消收藏成功");
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "取消收藏失败: " + e.getMessage());
+            return Result.error("取消收藏失败: " + e.getMessage());
         }
-        return result;
     }
     
     @ApiOperation("检查是否已收藏")
     @GetMapping("/check")
-    public Map<String, Object> checkFavorite(
+    public Result checkFavorite(
             @ApiParam("商品ID") @RequestParam Integer productId,
             HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
         try {
             Integer userId = getUserId(request);
             boolean isFavorite = userFavoriteService.isFavorite(userId, productId);
-            result.put("success", true);
-            result.put("isFavorite", isFavorite);
+            Map<String, Boolean> data = new HashMap<>();
+            data.put("isFavorite", isFavorite);
+            return Result.success(data);
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "检查失败: " + e.getMessage());
+            return Result.error("检查失败: " + e.getMessage());
         }
-        return result;
     }
     
     @ApiOperation("获取用户收藏列表")
     @GetMapping("/list")
-    public Map<String, Object> getFavoriteList(HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
+    public Result getFavoriteList(HttpServletRequest request) {
         try {
             Integer userId = getUserId(request);
             List<Integer> productIds = userFavoriteService.getFavoriteProductIds(userId);
-            result.put("success", true);
-            result.put("productIds", productIds);
+            Map<String, List<Integer>> data = new HashMap<>();
+            data.put("productIds", productIds);
+            return Result.success(data);
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "获取收藏列表失败: " + e.getMessage());
+            return Result.error("获取收藏列表失败: " + e.getMessage());
         }
-        return result;
     }
 }

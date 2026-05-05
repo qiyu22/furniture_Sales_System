@@ -9,7 +9,7 @@ public interface UserService {
     Map<String, Object> login(String username, String password);
     
     // 用户注册
-    void register(User user);
+    Map<String, Object> register(User user);
     
     // 根据ID查询用户
     User findById(Integer id);

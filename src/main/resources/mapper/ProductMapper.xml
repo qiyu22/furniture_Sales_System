@@ -124,12 +124,12 @@
             SELECT p.* FROM product p
             WHERE (p.status = 1 OR p.status IS NULL) AND p.id NOT IN (
                 SELECT oi.product_id FROM order_item oi
-                JOIN `order` o ON oi.order_id = o.id
+                JOIN `orders` o ON oi.order_id = o.id
                 WHERE o.user_id = #{userId}
             ) AND p.category_id IN (
                 SELECT p2.category_id FROM product p2
                 JOIN order_item oi2 ON p2.id = oi2.product_id
-                JOIN `order` o2 ON oi2.order_id = o2.id
+                JOIN `orders` o2 ON oi2.order_id = o2.id
                 WHERE o2.user_id = #{userId}
                 GROUP BY p2.category_id
                 ORDER BY COUNT(*) DESC

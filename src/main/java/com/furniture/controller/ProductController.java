@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.entity.Product;
 import com.furniture.service.ProductService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -17,8 +18,6 @@ import java.util.UUID;
 
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
-
 @Api(tags = "产品管理")
 @RestController
 @RequestMapping("/api/products")
@@ -32,7 +31,7 @@ public class ProductController {
     
     @ApiOperation("获取产品列表")
     @GetMapping
-    public Map<String, Object> getProducts(
+    public Result getProducts(
             @ApiParam("分类ID") @RequestParam(required = false) Integer categoryId,
             @ApiParam("排序方式") @RequestParam(required = false) String sortBy,
             @ApiParam("页码") @RequestParam(required = false, defaultValue = "1") Integer page,
@@ -49,70 +48,67 @@ public class ProductController {
             total = productService.countAll(priceRange);
         }
         
-        Map<String, Object> result = new HashMap<>();
-        result.put("list", products);
-        result.put("total", total);
-        return result;
+        return Result.page(products, total);
     }
     
     @ApiOperation("根据ID查询产品")
     @GetMapping("/{id}")
-    public Product getProductById(@ApiParam("产品ID") @PathVariable int id) {
-        return productService.findById(id);
+    public Result getProductById(@ApiParam("产品ID") @PathVariable int id) {
+        Product product = productService.findById(id);
+        return Result.success(product);
     }
     
     @ApiOperation("添加产品")
     @PostMapping
-    public void addProduct(@ApiParam("产品信息") @RequestBody Product product) {
+    public Result addProduct(@ApiParam("产品信息") @RequestBody Product product) {
         productService.save(product);
+        return Result.success("添加成功");
     }
     
     @ApiOperation("更新产品")
     @PutMapping("/{id}")
-    public void updateProduct(@ApiParam("产品ID") @PathVariable int id, @ApiParam("产品信息") @RequestBody Product product) {
+    public Result updateProduct(@ApiParam("产品ID") @PathVariable int id, @ApiParam("产品信息") @RequestBody Product product) {
         product.setId(id);
         productService.update(product);
+        return Result.success("更新成功");
     }
     
     @ApiOperation("删除产品")
     @DeleteMapping("/{id}")
-    public Object deleteProduct(@ApiParam("产品ID") @PathVariable int id) {
+    public Result deleteProduct(@ApiParam("产品ID") @PathVariable int id) {
         try {
             productService.delete(id);
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
-            result.put("message", "删除成功");
-            return result;
+            return Result.success("删除成功");
         } catch (Exception e) {
             e.printStackTrace();
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "删除失败：" + e.getMessage());
-            return result;
+            return Result.error("删除失败：" + e.getMessage());
         }
     }
     
     @ApiOperation("搜索产品")
     @GetMapping("/search")
-    public List<Product> searchProducts(@ApiParam("关键词") @RequestParam String keyword) {
-        return productService.search(keyword);
+    public Result searchProducts(@ApiParam("关键词") @RequestParam String keyword) {
+        List<Product> products = productService.search(keyword);
+        return Result.success(products);
     }
     
     @ApiOperation("获取推荐商品")
     @GetMapping("/recommend")
-    public List<Product> getRecommendProducts(@ApiParam("用户ID") @RequestParam(required = false) Integer userId) {
-        return productService.getRecommendProducts(userId);
+    public Result getRecommendProducts(@ApiParam("用户ID") @RequestParam(required = false) Integer userId) {
+        List<Product> products = productService.getRecommendProducts(userId);
+        return Result.success(products);
     }
     
     @ApiOperation("获取热门商品")
     @GetMapping("/hot")
-    public List<Product> getHotProducts() {
-        return productService.getHotProducts();
+    public Result getHotProducts() {
+        List<Product> products = productService.getHotProducts();
+        return Result.success(products);
     }
 
     @ApiOperation("上传图片")
     @PostMapping("/upload")
-    public Object uploadImage(@ApiParam("图片文件") @RequestParam("file") MultipartFile file) {
+    public Result uploadImage(@ApiParam("图片文件") @RequestParam("file") MultipartFile file) {
         // 确保上传目录存在
         String uploadDir = "D:\\Code_items\\furniture_Sales_System\\src\\main\\resources\\static\\images\\";
         File dir = new File(uploadDir);
@@ -123,7 +119,7 @@ public class ProductController {
         // 生成唯一文件名
         String originalFilename = file.getOriginalFilename();
         if(originalFilename == null){
-            return null;
+            return Result.error("文件为空");
         }
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String fileName = UUID.randomUUID().toString() + extension;
@@ -134,15 +130,15 @@ public class ProductController {
             file.transferTo(new File(filePath));
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            return Result.error("上传失败：" + e.getMessage());
         }
 
         // 构建图片URL
         String imageUrl = "http://localhost:" + port + "/images/" + fileName;
 
         // 返回结果
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         result.put("imageUrl", imageUrl);
-        return result;
+        return Result.success(result);
     }
 }

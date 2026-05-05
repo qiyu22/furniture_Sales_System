@@ -3,6 +3,7 @@ package com.furniture.controller;
 import com.furniture.entity.Order;
 import com.furniture.service.OrderService;
 import com.furniture.utils.JwtUtils;
+import com.furniture.utils.Result;
 import io.jsonwebtoken.Claims;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,13 +30,11 @@ public class PaymentController {
     
     @ApiOperation("创建支付")
     @PostMapping("/pay")
-    public Map<String, Object> pay(
+    public Result pay(
             @ApiParam("订单ID") @RequestParam String orderId,
             @ApiParam("支付金额") @RequestParam String amount,
             @ApiParam("支付方式") @RequestParam String paymentMethod,
             HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
-        
         try {
             // 从请求头中获取token
             String token = request.getHeader("Authorization");
@@ -48,36 +48,26 @@ public class PaymentController {
                     // 验证订单是否存在且属于当前用户
                     Order order = orderService.findByOrderId(orderId);
                     if (order == null) {
-                        result.put("success", false);
-                        result.put("message", "订单不存在");
-                        return result;
+                        return Result.error("订单不存在");
                     }
                     
                     if (order.getUserId() != userId) {
-                        result.put("success", false);
-                        result.put("message", "订单不属于当前用户");
-                        return result;
+                        return Result.error("订单不属于当前用户");
                     }
                     
                     // 检查订单状态
                     if (order.getStatus() != 0) { // 0: 待支付
-                        result.put("success", false);
-                        result.put("message", "订单状态不正确");
-                        return result;
+                        return Result.error("订单状态不正确");
                     }
                     
                     // 验证金额
                     try {
                         BigDecimal paymentAmount = new BigDecimal(amount);
                         if (order.getTotalPrice().compareTo(paymentAmount) != 0) {
-                            result.put("success", false);
-                            result.put("message", "金额不匹配");
-                            return result;
+                            return Result.error("金额不匹配");
                         }
                     } catch (NumberFormatException e) {
-                        result.put("success", false);
-                        result.put("message", "金额格式错误");
-                        return result;
+                        return Result.error("金额格式错误");
                     }
                     
                     // 模拟支付过程
@@ -85,34 +75,27 @@ public class PaymentController {
                     System.out.println("支付请求: 订单ID=" + orderId + ", 金额=" + amount + ", 支付方式=" + paymentMethod);
                     
                     // 支付成功后更新订单状态
-                    order.setStatus(1); // 1: 已支付
+                    order.setStatus(1);
                     order.setPaymentMethod(paymentMethod);
+                    order.setPaymentTime(new Date());
                     orderService.update(order);
                     
-                    result.put("success", true);
-                    result.put("message", "支付成功");
-                    return result;
+                    return Result.success("支付成功");
                 }
             }
             
-            result.put("success", false);
-            result.put("message", "未登录或登录已过期");
-            return result;
+            return Result.error("未登录或登录已过期");
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "支付失败: " + e.getMessage());
-            return result;
+            return Result.error("支付失败: " + e.getMessage());
         }
     }
     
     @ApiOperation("获取支付状态")
     @GetMapping("/status/{orderId}")
-    public Map<String, Object> getPaymentStatus(
+    public Result getPaymentStatus(
             @ApiParam("订单ID") @PathVariable String orderId,
             HttpServletRequest request) {
-        Map<String, Object> result = new HashMap<>();
-        
         try {
             // 从请求头中获取token
             String token = request.getHeader("Authorization");
@@ -126,32 +109,24 @@ public class PaymentController {
                     // 验证订单是否存在且属于当前用户
                     Order order = orderService.findByOrderId(orderId);
                     if (order == null) {
-                        result.put("success", false);
-                        result.put("message", "订单不存在");
-                        return result;
+                        return Result.error("订单不存在");
                     }
                     
                     if (order.getUserId() != userId) {
-                        result.put("success", false);
-                        result.put("message", "订单不属于当前用户");
-                        return result;
+                        return Result.error("订单不属于当前用户");
                     }
                     
-                    result.put("success", true);
-                    result.put("status", order.getStatus());
-                    result.put("paymentMethod", order.getPaymentMethod());
-                    return result;
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("status", order.getStatus());
+                    data.put("paymentMethod", order.getPaymentMethod());
+                    return Result.success(data);
                 }
             }
             
-            result.put("success", false);
-            result.put("message", "未登录或登录已过期");
-            return result;
+            return Result.error("未登录或登录已过期");
         } catch (Exception e) {
             e.printStackTrace();
-            result.put("success", false);
-            result.put("message", "获取支付状态失败: " + e.getMessage());
-            return result;
+            return Result.error("获取支付状态失败: " + e.getMessage());
         }
     }
 }

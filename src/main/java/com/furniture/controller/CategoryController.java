@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.entity.Category;
 import com.furniture.service.CategoryService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -20,32 +21,41 @@ public class CategoryController {
     
     @ApiOperation("获取所有分类")
     @GetMapping
-    public List<Category> getCategories() {
-        return categoryService.findAll();
+    public Result getCategories() {
+        List<Category> categories = categoryService.findAll();
+        return Result.success(categories);
     }
     
     @ApiOperation("根据ID查询分类")
     @GetMapping("/{id}")
-    public Category getCategoryById(@ApiParam("分类ID") @PathVariable int id) {
-        return categoryService.findById(id);
+    public Result getCategoryById(@ApiParam("分类ID") @PathVariable int id) {
+        Category category = categoryService.findById(id);
+        return Result.success(category);
     }
     
     @ApiOperation("添加分类")
     @PostMapping
-    public void addCategory(@ApiParam("分类信息") @RequestBody Category category) {
+    public Result addCategory(@ApiParam("分类信息") @RequestBody Category category) {
         categoryService.add(category);
+        return Result.success("添加成功");
     }
     
     @ApiOperation("更新分类")
     @PutMapping("/{id}")
-    public void updateCategory(@ApiParam("分类ID") @PathVariable int id, @ApiParam("分类信息") @RequestBody Category category) {
+    public Result updateCategory(@ApiParam("分类ID") @PathVariable int id, @ApiParam("分类信息") @RequestBody Category category) {
         category.setId(id);
         categoryService.update(category);
+        return Result.success("更新成功");
     }
     
     @ApiOperation("删除分类")
     @DeleteMapping("/{id}")
-    public void deleteCategory(@ApiParam("分类ID") @PathVariable int id) {
-        categoryService.delete(id);
+    public Result deleteCategory(@ApiParam("分类ID") @PathVariable int id) {
+        try {
+            categoryService.delete(id);
+            return Result.success("删除成功");
+        } catch (Exception e) {
+            return Result.error("删除失败，该分类下可能存在关联商品");
+        }
     }
 }

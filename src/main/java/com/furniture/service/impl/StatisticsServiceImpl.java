@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -109,11 +110,11 @@ public class StatisticsServiceImpl implements StatisticsService {
         });
         
         // 计算订单统计
-        int totalOrders = orders.size();
-        int todayOrders = (int) orders.stream()
+        int totalOrders = completedOrders.size();
+        int todayOrders = (int) completedOrders.stream()
                 .filter(order -> dateFormat.format(order.getCreatedAt()).equals(today))
                 .count();
-        int monthOrders = (int) orders.stream()
+        int monthOrders = (int) completedOrders.stream()
                 .filter(order -> monthFormat.format(order.getCreatedAt()).equals(currentMonth))
                 .count();
         int completedOrderCount = completedOrders.size();
@@ -122,31 +123,23 @@ public class StatisticsServiceImpl implements StatisticsService {
         Map<String, Long> last7DaysOrders = new HashMap<>();
         Map<String, Long> last30DaysOrders = new HashMap<>();
         
-        // 按分类统计销量
+        // 按分类统计销量（直接从商品表 sales 字段汇总，与商品详情页销量一致）
         Map<String, Integer> salesByCategory = new HashMap<>();
         
-        // 获取所有分类
         List<Category> categories = categoryService.findAll();
         Map<Integer, String> categoryMap = new HashMap<>();
         for (Category category : categories) {
             categoryMap.put(category.getId(), category.getName());
         }
         
-        completedOrders.forEach(order -> {
-            if (order.getOrderItems() != null) {
-                order.getOrderItems().forEach(item -> {
-                    // 根据产品ID获取分类
-                    Product product = productService.findById(item.getProductId());
-                    String categoryName = "其他";
-                    if (product != null && product.getCategoryId() != null) {
-                        categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
-                    }
-                    
-                    int quantity = item.getQuantity();
-                    salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + quantity);
-                });
+        List<Product> allProducts = productService.findAll();
+        for (Product product : allProducts) {
+            if (product.getStatus() == null || product.getStatus() == 1) {
+                String categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
+                int sales = product.getSales() != null ? product.getSales() : 0;
+                salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + sales);
             }
-        });
+        }
         
         result.put("totalSales", totalSales);
         result.put("todaySales", todaySales);
@@ -312,13 +305,37 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public Map<String, Object> getUserStatistics() {
         Map<String, Object> result = new HashMap<>();
+        List<User> users = userService.findAll();
+        int totalUsers = users != null ? users.size() : 0;
         
-        // 这里应该实现用户统计逻辑
-        // 简化实现，实际应该从数据库查询
-        result.put("totalUsers", 100);
-        result.put("newUsersToday", 5);
-        result.put("activeUsers", 80);
+        Calendar cal = Calendar.getInstance();
+        int newUsersToday = 0;
+        int newUsersThisWeek = 0;
         
+        // 今天零点
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        Date todayStart = cal.getTime();
+        
+        // 本周一零点
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+        Date weekStart = cal.getTime();
+        
+        for (User user : users) {
+            if (user.getCreatedAt() != null) {
+                if (!user.getCreatedAt().before(todayStart)) {
+                    newUsersToday++;
+                }
+                if (!user.getCreatedAt().before(weekStart)) {
+                    newUsersThisWeek++;
+                }
+            }
+        }
+        
+        result.put("totalUsers", totalUsers);
+        result.put("newUsersToday", newUsersToday);
+        result.put("newUsersThisWeek", newUsersThisWeek);
         return result;
     }
     
@@ -344,6 +361,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         });
         
         result.put("totalCategories", totalCategories);
+        result.put("activeCategories", (int) categories.stream().filter(c -> c.getStatus() == null || c.getStatus() == 1).count());
         result.put("productCountByCategory", productCountByCategory);
         
         return result;
@@ -396,7 +414,12 @@ public class StatisticsServiceImpl implements StatisticsService {
             Map<String, Double> salesByDate = (Map<String, Double>) salesData.get("salesByDate");
             Map<String, Long> ordersByDate = (Map<String, Long>) salesData.get("ordersByDate");
             
-            salesByDate.forEach((date, sales) -> {
+            // 按日期排序
+            List<String> sortedDates = new ArrayList<>(salesByDate.keySet());
+            Collections.sort(sortedDates);
+            
+            for (String date : sortedDates) {
+                Double sales = salesByDate.get(date);
                 Long orderCount = ordersByDate.getOrDefault(date, 0L);
                 double avg = orderCount > 0 ? sales / orderCount : 0;
                 
@@ -406,7 +429,7 @@ public class StatisticsServiceImpl implements StatisticsService {
                         sales,
                         avg
                 ));
-            });
+            }
         }
         
         System.out.println("导出销售数据数量：" + exportData.size());
@@ -443,14 +466,15 @@ public class StatisticsServiceImpl implements StatisticsService {
             Category category = categoryService.findById(product.getCategoryId());
             String categoryName = category != null ? category.getName() : "未知";
             
+            Integer sales = product.getSales() != null ? product.getSales() : 0;
             exportData.add(Arrays.asList(
                     product.getId(),
                     product.getName(),
                     categoryName,
                     product.getPrice(),
-                    product.getSales(),
+                    sales,
                     product.getStock(),
-                    product.getPrice().multiply(new java.math.BigDecimal(product.getSales()))
+                    product.getPrice().multiply(new java.math.BigDecimal(sales))
             ));
         }
         
@@ -473,108 +497,86 @@ public class StatisticsServiceImpl implements StatisticsService {
     
     @Override
     public void exportOrderStatistics(HttpServletResponse response, Integer status, String startDate, String endDate) throws IOException {
-        // 设置响应头
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setCharacterEncoding("UTF-8");
-        String fileName = URLEncoder.encode("订单报表_" + new Date().toString(), "UTF-8");
-        response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
+        response.setHeader("Content-disposition", "attachment;filename=" + URLEncoder.encode("订单报表.xlsx", "UTF-8"));
         
-        // 获取所有订单
         List<Order> orders = orderService.findAll();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         
-        // 筛选订单
         List<Order> filteredOrders = orders.stream()
                 .filter(order -> {
-                    // 状态筛选
-                    if (status != null && order.getStatus() != status) {
-                        return false;
-                    }
-                    // 日期筛选
+                    if (status != null && order.getStatus() != status) return false;
                     if (startDate != null || endDate != null) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        String orderDate = dateFormat.format(order.getCreatedAt());
-                        if (startDate != null && orderDate.compareTo(startDate) < 0) {
-                            return false;
-                        }
-                        if (endDate != null && orderDate.compareTo(endDate) > 0) {
-                            return false;
-                        }
+                        String orderDate = new SimpleDateFormat("yyyy-MM-dd").format(order.getCreatedAt());
+                        if (startDate != null && orderDate.compareTo(startDate) < 0) return false;
+                        if (endDate != null && orderDate.compareTo(endDate) > 0) return false;
                     }
                     return true;
                 })
+                .sorted((o1, o2) -> {
+                    if (o1.getCreatedAt() == null) return 1;
+                    if (o2.getCreatedAt() == null) return -1;
+                    return o1.getCreatedAt().compareTo(o2.getCreatedAt());
+                })
                 .collect(Collectors.toList());
         
-        // 准备导出数据
         List<List<Object>> exportData = new ArrayList<>();
         
-        // 添加订单数据
         for (Order order : filteredOrders) {
-            // 获取订单中的商品
-            List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
-            
-            for (OrderItem item : orderItems) {
-                // 获取用户名
-                User user = userService.findById(order.getUserId());
-                String username = user != null ? user.getUsername() : "未知";
-                
-                // 获取商品名称
-                Product product = productService.findById(item.getProductId());
-                String productName = product != null ? product.getName() : "未知";
-                
-                // 订单状态
-                String statusText = "";
-                switch (order.getStatus()) {
-                    case 0: statusText = "待支付"; break;
-                    case 1: statusText = "已支付"; break;
-                    case 2: statusText = "已发货"; break;
-                    case 3: statusText = "已完成"; break;
-                    case 4: statusText = "已取消"; break;
-                    default: statusText = "未知"; break;
-                }
-                
-                exportData.add(Arrays.asList(
-                        order.getId(),
-                        order.getUserId(),
-                        username,
-                        order.getId(),
-                        productName,
-                        item.getQuantity(),
-                        item.getPrice(),
-                        order.getTotalPrice(),
-                        order.getActualPrice(),
-                        statusText,
-                        order.getShippingAddress(),
-                        order.getCreatedAt(),
-                        order.getPaymentTime()
-                ));
+            String statusText;
+            switch (order.getStatus()) {
+                case 0: statusText = "待支付"; break;
+                case 1: statusText = "已支付"; break;
+                case 2: statusText = "已发货"; break;
+                case 3: statusText = "已完成"; break;
+                case 4: statusText = "已取消"; break;
+                default: statusText = "未知"; break;
             }
+            
+            User user = userService.findById(order.getUserId());
+            String username = user != null ? user.getUsername() : "";
+            
+            // 获取商品摘要
+            List<OrderItem> orderItems = orderItemMapper.findByOrderId(order.getId());
+            StringBuilder productSummary = new StringBuilder();
+            if (orderItems != null) {
+                for (int i = 0; i < orderItems.size(); i++) {
+                    OrderItem item = orderItems.get(i);
+                    productSummary.append(item.getProductName() != null ? item.getProductName() : "商品")
+                        .append(" x").append(item.getQuantity());
+                    if (i < orderItems.size() - 1) productSummary.append("; ");
+                }
+            }
+            
+            exportData.add(Arrays.asList(
+                    order.getId(),
+                    username,
+                    productSummary.toString(),
+                    order.getTotalPrice() != null ? order.getTotalPrice() : BigDecimal.ZERO,
+                    statusText,
+                    order.getPaymentMethod() != null ? order.getPaymentMethod() : "",
+                    order.getPaymentTime() != null ? sdf.format(order.getPaymentTime()) : "",
+                    order.getCreatedAt() != null ? sdf.format(order.getCreatedAt()) : ""
+            ));
         }
         
-        System.out.println("导出订单数据数量：" + exportData.size());
-        
-        // 导出Excel
         EasyExcel.write(response.getOutputStream())
                 .head(Arrays.asList(
-                        Arrays.asList("订单ID"),
-                        Arrays.asList("用户ID"),
+                        Arrays.asList("订单号"),
                         Arrays.asList("用户名"),
-                        Arrays.asList("订单编号"),
-                        Arrays.asList("商品名称"),
-                        Arrays.asList("商品数量"),
-                        Arrays.asList("商品单价"),
-                        Arrays.asList("订单总金额"),
-                        Arrays.asList("支付金额"),
+                        Arrays.asList("商品明细"),
+                        Arrays.asList("订单金额"),
                         Arrays.asList("订单状态"),
-                        Arrays.asList("收货地址"),
-                        Arrays.asList("创建时间"),
-                        Arrays.asList("支付时间")
+                        Arrays.asList("支付方式"),
+                        Arrays.asList("支付时间"),
+                        Arrays.asList("下单时间")
                 ))
                 .sheet("订单报表")
                 .doWrite(exportData);
     }
-    
-    @Override
-    public Map<String, Object> getDashboardStatistics() {
+
+public Map<String, Object> getDashboardStatistics() {
         Map<String, Object> result = new HashMap<>();
         
         try {
@@ -719,44 +721,24 @@ public class StatisticsServiceImpl implements StatisticsService {
     
     @Override
     public List<Map<String, Object>> getTopCategoriesBySales(int limit) {
-        // 获取所有订单
-        List<Order> orders = orderService.findAll();
-        
-        // 过滤已完成的订单
-        List<Order> completedOrders = orders.stream()
-                .filter(order -> order.getStatus() == 3) // 只统计已完成的订单
-                .collect(Collectors.toList());
-        
-        // 按分类统计销量
-        Map<String, Integer> salesByCategory = new HashMap<>();
-        Map<String, Integer> categoryIdMap = new HashMap<>();
-        
-        // 获取所有分类
-        List<Category> categories = categoryService.findAll();
+        List<Product> products = productService.findAll();
         Map<Integer, String> categoryMap = new HashMap<>();
-        for (Category category : categories) {
+        for (Category category : categoryService.findAll()) {
             categoryMap.put(category.getId(), category.getName());
         }
         
-        completedOrders.forEach(order -> {
-            if (order.getOrderItems() != null) {
-                order.getOrderItems().forEach(item -> {
-                    // 根据产品ID获取分类
-                    Product product = productService.findById(item.getProductId());
-                    if (product != null && product.getCategoryId() != null) {
-                        String categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
-                        int quantity = item.getQuantity() != null ? item.getQuantity() : 0;
-                        salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + quantity);
-                        // 只在第一次遇到该分类名称时设置分类ID，避免覆盖
-                        if (!categoryIdMap.containsKey(categoryName)) {
-                            categoryIdMap.put(categoryName, product.getCategoryId());
-                        }
-                    }
-                });
-            }
-        });
+        Map<String, Integer> salesByCategory = new HashMap<>();
+        Map<String, Integer> categoryIdMap = new HashMap<>();
         
-        // 按销量排序，返回前limit个
+        for (Product product : products) {
+            String categoryName = categoryMap.getOrDefault(product.getCategoryId(), "其他");
+            int sales = product.getSales() != null ? product.getSales() : 0;
+            salesByCategory.put(categoryName, salesByCategory.getOrDefault(categoryName, 0) + sales);
+            if (!categoryIdMap.containsKey(categoryName)) {
+                categoryIdMap.put(categoryName, product.getCategoryId());
+            }
+        }
+        
         return salesByCategory.entrySet().stream()
                 .map(entry -> {
                     Map<String, Object> categoryInfo = new HashMap<>();

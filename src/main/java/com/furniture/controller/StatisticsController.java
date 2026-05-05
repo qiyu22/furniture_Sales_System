@@ -1,6 +1,7 @@
 package com.furniture.controller;
 
 import com.furniture.service.StatisticsService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -22,33 +23,38 @@ public class StatisticsController {
     
     @ApiOperation("获取销售统计数据")
     @GetMapping("/sales")
-    public Map<String, Object> getSalesStatistics(@ApiParam("开始日期") @RequestParam(required = false) String startDate, 
+    public Result getSalesStatistics(@ApiParam("开始日期") @RequestParam(required = false) String startDate, 
                                                @ApiParam("结束日期") @RequestParam(required = false) String endDate) {
-        return statisticsService.getSalesStatistics(startDate, endDate);
+        Map<String, Object> statistics = statisticsService.getSalesStatistics(startDate, endDate);
+        return Result.success(statistics);
     }
     
     @ApiOperation("获取产品统计数据")
     @GetMapping("/products")
-    public Map<String, Object> getProductStatistics() {
-        return statisticsService.getProductStatistics();
+    public Result getProductStatistics() {
+        Map<String, Object> statistics = statisticsService.getProductStatistics();
+        return Result.success(statistics);
     }
     
     @ApiOperation("获取用户统计数据")
     @GetMapping("/users")
-    public Map<String, Object> getUserStatistics() {
-        return statisticsService.getUserStatistics();
+    public Result getUserStatistics() {
+        Map<String, Object> statistics = statisticsService.getUserStatistics();
+        return Result.success(statistics);
     }
     
     @ApiOperation("获取分类统计数据")
     @GetMapping("/categories")
-    public Map<String, Object> getCategoryStatistics() {
-        return statisticsService.getCategoryStatistics();
+    public Result getCategoryStatistics() {
+        Map<String, Object> statistics = statisticsService.getCategoryStatistics();
+        return Result.success(statistics);
     }
     
     @ApiOperation("获取订单状态统计数据")
     @GetMapping("/order-status")
-    public Map<String, Object> getOrderStatusStatistics() {
-        return statisticsService.getOrderStatusStatistics();
+    public Result getOrderStatusStatistics() {
+        Map<String, Object> statistics = statisticsService.getOrderStatusStatistics();
+        return Result.success(statistics);
     }
     
     @ApiOperation("导出销售统计Excel")
@@ -76,19 +82,22 @@ public class StatisticsController {
     
     @ApiOperation("获取仪表盘数据")
     @GetMapping("/dashboard")
-    public Map<String, Object> getDashboardStatistics() {
-        return statisticsService.getDashboardStatistics();
+    public Result getDashboardStatistics() {
+        Map<String, Object> statistics = statisticsService.getDashboardStatistics();
+        return Result.success(statistics);
     }
     
     @ApiOperation("获取产品销量排行")
     @GetMapping("/product-sales")
-    public java.util.List<java.util.Map<String, Object>> getProductSalesRanking() {
-        return statisticsService.getProductSalesRanking();
+    public Result getProductSalesRanking() {
+        List<Map<String, Object>> ranking = statisticsService.getProductSalesRanking();
+        return Result.success(ranking);
     }
     
     @ApiOperation("获取销量最高的分类")
     @GetMapping("/top-categories")
-    public List<Map<String, Object>> getTopCategoriesBySales(@ApiParam("返回数量") @RequestParam(defaultValue = "6") int limit) {
-        return statisticsService.getTopCategoriesBySales(limit);
+    public Result getTopCategoriesBySales(@ApiParam("返回数量") @RequestParam(defaultValue = "6") int limit) {
+        List<Map<String, Object>> categories = statisticsService.getTopCategoriesBySales(limit);
+        return Result.success(categories);
     }
 }

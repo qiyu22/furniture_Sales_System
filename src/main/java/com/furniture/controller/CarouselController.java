@@ -2,6 +2,7 @@ package com.furniture.controller;
 
 import com.furniture.entity.Carousel;
 import com.furniture.service.CarouselService;
+import com.furniture.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -30,44 +31,50 @@ public class CarouselController {
 
     @ApiOperation("获取所有轮播图")
     @GetMapping
-    public List<Carousel> getAllCarousels() {
-        return carouselService.findAll();
+    public Result getAllCarousels() {
+        List<Carousel> carousels = carouselService.findAll();
+        return Result.success(carousels);
     }
 
     @ApiOperation("根据ID查询轮播图")
     @GetMapping("/{id}")
-    public Carousel getCarouselById(@ApiParam("轮播图ID") @PathVariable int id) {
-        return carouselService.findById(id);
+    public Result getCarouselById(@ApiParam("轮播图ID") @PathVariable int id) {
+        Carousel carousel = carouselService.findById(id);
+        return Result.success(carousel);
     }
 
     @ApiOperation("获取启用的轮播图")
     @GetMapping("/status/{status}")
-    public List<Carousel> getCarouselsByStatus(@ApiParam("状态") @PathVariable int status) {
-        return carouselService.findByStatus(status);
+    public Result getCarouselsByStatus(@ApiParam("状态") @PathVariable int status) {
+        List<Carousel> carousels = carouselService.findByStatus(status);
+        return Result.success(carousels);
     }
 
     @ApiOperation("添加轮播图")
     @PostMapping
-    public void addCarousel(@ApiParam("轮播图信息") @RequestBody Carousel carousel) {
+    public Result addCarousel(@ApiParam("轮播图信息") @RequestBody Carousel carousel) {
         carouselService.add(carousel);
+        return Result.success("添加成功");
     }
 
     @ApiOperation("更新轮播图")
     @PutMapping("/{id}")
-    public void updateCarousel(@ApiParam("轮播图ID") @PathVariable int id, @ApiParam("轮播图信息") @RequestBody Carousel carousel) {
+    public Result updateCarousel(@ApiParam("轮播图ID") @PathVariable int id, @ApiParam("轮播图信息") @RequestBody Carousel carousel) {
         carousel.setId(id);
         carouselService.update(carousel);
+        return Result.success("更新成功");
     }
 
     @ApiOperation("删除轮播图")
     @DeleteMapping("/{id}")
-    public void deleteCarousel(@ApiParam("轮播图ID") @PathVariable int id) {
+    public Result deleteCarousel(@ApiParam("轮播图ID") @PathVariable int id) {
         carouselService.delete(id);
+        return Result.success("删除成功");
     }
     
     @ApiOperation("上传图片")
     @PostMapping("/upload")
-    public Map<String, Object> uploadImage(@ApiParam("图片文件") @RequestParam("file") MultipartFile file) {
+    public Result uploadImage(@ApiParam("图片文件") @RequestParam("file") MultipartFile file) {
         // 确保上传目录存在
         String uploadDir = "D:\\Code_items\\furniture_Sales_System\\src\\main\\resources\\static\\carousel";
         File dir = new File(uploadDir);
@@ -78,10 +85,7 @@ public class CarouselController {
         // 生成唯一文件名
         String originalFilename = file.getOriginalFilename();
         if(originalFilename == null){
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "文件名为空");
-            return result;
+            return Result.error("文件名为空");
         }
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String fileName = UUID.randomUUID().toString() + extension;
@@ -92,21 +96,15 @@ public class CarouselController {
             file.transferTo(new File(filePath));
         } catch (IOException e) {
             e.printStackTrace();
-            Map<String, Object> result = new HashMap<>();
-            result.put("success", false);
-            result.put("message", "上传失败");
-            return result;
+            return Result.error("上传失败");
         }
 
         // 构建图片URL
-        String imageUrl = "http://localhost:8080/carousel/" + fileName;
+        String imageUrl = "http://localhost:" + port + "/carousel/" + fileName;
 
         // 返回结果
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
         Map<String, String> data = new HashMap<>();
         data.put("url", imageUrl);
-        result.put("data", data);
-        return result;
+        return Result.success(data);
     }
 }

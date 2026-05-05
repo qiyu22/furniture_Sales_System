@@ -14,8 +14,18 @@ public interface OrderService {
     // 根据用户ID查询订单
     List<Order> findByUserId(int userId);
     
+    // 根据用户ID分页查询订单
+    List<Order> findByUserIdWithPagination(int userId, int page, int pageSize);
+    
     // 查询所有订单
     List<Order> findAll();
+    
+    // 分页查询所有订单
+    List<Order> findAllWithPagination(int page, int pageSize, Integer status);
+
+    int countAll(Integer status);
+
+    int countByUserId(int userId);
     
     // 更新订单状态
     void updateStatus(String orderId, int status);
