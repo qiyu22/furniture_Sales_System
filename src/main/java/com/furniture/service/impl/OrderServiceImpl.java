@@ -39,22 +39,23 @@ public class OrderServiceImpl implements OrderService {
         // 生成订单ID
         String orderId = UUID.randomUUID().toString().replace("-", "");
 
-        // 检查库存
+        // 检查库存并加载完整产品信息
         for (CartItem item : cartItems) {
-            Product product = productMapper.findById(item.getProduct().getId());
+            Integer productId = item.getProductId();
+            Product product = productMapper.findById(productId);
             if (product == null) {
-                throw new RuntimeException("商品不存在: " + item.getProduct().getName());
+                throw new RuntimeException("商品不存在: ID=" + productId);
             }
-            if (product.getStock() < item.getQuantity()) {
-                throw new RuntimeException("商品库存不足: " + item.getProduct().getName());
+            if (product.getStock() == null || product.getStock() < item.getQuantity()) {
+                throw new RuntimeException("商品库存不足: " + product.getName());
             }
         }
 
         // 计算订单总价
         BigDecimal totalPrice = cartItems.stream()
                 .map(item -> {
-                    // 优先使用活动价格
-                    BigDecimal itemPrice = item.getProduct().getActivityPrice() != null ? item.getProduct().getActivityPrice() : item.getProduct().getPrice();
+                    Product product = productMapper.findById(item.getProductId());
+                    BigDecimal itemPrice = product.getActivityPrice() != null ? product.getActivityPrice() : product.getPrice();
                     return itemPrice.multiply(new BigDecimal(item.getQuantity()));
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -90,20 +91,23 @@ public class OrderServiceImpl implements OrderService {
         // 创建订单详情
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem item : cartItems) {
+            Product product = productMapper.findById(item.getProductId());
             OrderItem orderItem = new OrderItem();
             orderItem.setOrderId(orderId);
-            orderItem.setProductId(item.getProduct().getId());
-            orderItem.setProductName(item.getProduct().getName());
-            orderItem.setProductImage(item.getProduct().getImage());
+            orderItem.setProductId(product.getId());
+            orderItem.setProductName(product.getName());
+            orderItem.setProductImage(product.getImage());
             orderItem.setQuantity(item.getQuantity());
-            // 优先使用活动价格
-            orderItem.setPrice(item.getProduct().getActivityPrice() != null ? item.getProduct().getActivityPrice() : item.getProduct().getPrice());
+            orderItem.setPrice(product.getActivityPrice() != null ? product.getActivityPrice() : product.getPrice());
             orderItemMapper.insert(orderItem);
 
-            // 减少库存
-            productService.decreaseStock(item.getProduct().getId(), item.getQuantity());
+            // 减少库存并检查结果
+            int updated = productMapper.decreaseStock(product.getId(), item.getQuantity());
+            if (updated == 0) {
+                throw new RuntimeException("商品库存不足: " + product.getName());
+            }
             // 增加销量
-            productService.increaseSales(item.getProduct().getId(), item.getQuantity());
+            productService.increaseSales(product.getId(), item.getQuantity());
 
             orderItems.add(orderItem);
         }

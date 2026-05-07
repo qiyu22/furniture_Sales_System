@@ -51,4 +51,9 @@
         SET is_default = 1
         WHERE id = #{id}
     </update>
+
+    <!-- 根据用户ID删除地址 -->
+    <delete id="deleteByUserId">
+        DELETE FROM user_address WHERE user_id = #{userId}
+    </delete>
 </mapper>

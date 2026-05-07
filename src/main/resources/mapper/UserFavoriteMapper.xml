@@ -27,4 +27,14 @@
         SELECT product_id FROM user_favorite
         WHERE user_id = #{userId}
     </select>
+
+    <!-- 根据产品ID删除收藏 -->
+    <delete id="deleteByProductId">
+        DELETE FROM user_favorite WHERE product_id = #{productId}
+    </delete>
+
+    <!-- 根据用户ID删除收藏 -->
+    <delete id="deleteByUserId">
+        DELETE FROM user_favorite WHERE user_id = #{userId}
+    </delete>
 </mapper>

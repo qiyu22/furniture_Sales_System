@@ -42,4 +42,9 @@
     <select id="countByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM cart_item WHERE user_id = #{userId}
     </select>
+
+    <!-- 根据产品ID删除购物车项 -->
+    <delete id="deleteByProductId" parameterType="java.lang.Integer">
+        DELETE FROM cart_item WHERE product_id = #{productId}
+    </delete>
 </mapper>

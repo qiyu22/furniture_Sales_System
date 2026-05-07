@@ -28,4 +28,7 @@ public interface CartItemMapper {
     
     // 统计用户购物车数量
     int countByUserId(@Param("userId") Integer userId);
+
+    // 根据产品ID删除购物车项
+    void deleteByProductId(@Param("productId") Integer productId);
 }

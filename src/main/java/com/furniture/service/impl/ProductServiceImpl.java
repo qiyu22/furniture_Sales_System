@@ -4,11 +4,15 @@ import com.furniture.entity.Product;
 import com.furniture.entity.ActivityProduct;
 import com.furniture.mapper.ProductMapper;
 import com.furniture.mapper.UserBehaviorMapper;
+import com.furniture.mapper.CartItemMapper;
+import com.furniture.mapper.ActivityMapper;
+import com.furniture.mapper.UserFavoriteMapper;
 import com.furniture.service.ProductService;
 import com.furniture.service.RecommendationService;
 import com.furniture.service.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -23,6 +27,15 @@ public class ProductServiceImpl implements ProductService {
     
     @Autowired
     private UserBehaviorMapper userBehaviorMapper;
+    
+    @Autowired
+    private CartItemMapper cartItemMapper;
+    
+    @Autowired
+    private ActivityMapper activityMapper;
+    
+    @Autowired
+    private UserFavoriteMapper userFavoriteMapper;
     
     @Autowired
     private RecommendationService recommendationService;
@@ -149,10 +162,12 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
+    @Transactional
     public void delete(Integer id) {
-        // 先删除相关的用户行为记录
         userBehaviorMapper.deleteByProductId(id);
-        // 再删除产品
+        cartItemMapper.deleteByProductId(id);
+        activityMapper.deleteActivityProductByProductId(id);
+        userFavoriteMapper.deleteByProductId(id);
         productMapper.delete(id);
     }
     

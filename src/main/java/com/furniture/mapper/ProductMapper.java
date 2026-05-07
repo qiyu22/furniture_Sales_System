@@ -33,7 +33,7 @@ public interface ProductMapper {
     void delete(@Param("id") Integer id);
     
     // 减少产品库存
-    void decreaseStock(@Param("productId") Integer productId, @Param("quantity") Integer quantity);
+    int decreaseStock(@Param("productId") Integer productId, @Param("quantity") Integer quantity);
     
     // 增加产品库存
     void increaseStock(@Param("productId") Integer productId, @Param("quantity") Integer quantity);
@@ -61,4 +61,7 @@ public interface ProductMapper {
     
     // 统计指定分类的产品数量（支持价格筛选）
     int countByCategoryId(@Param("categoryId") Integer categoryId, @Param("priceRange") Integer priceRange);
+
+    // 将分类下的产品category_id置空
+    void nullifyCategoryId(@Param("categoryId") Integer categoryId);
 }

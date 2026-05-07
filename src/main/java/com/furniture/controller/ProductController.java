@@ -61,6 +61,12 @@ public class ProductController {
     @ApiOperation("添加产品")
     @PostMapping
     public Result addProduct(@ApiParam("产品信息") @RequestBody Product product) {
+        if (product.getName() == null || product.getName().trim().isEmpty()) {
+            return Result.error("产品名称不能为空");
+        }
+        if (product.getPrice() == null || product.getPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            return Result.error("产品价格必须大于0");
+        }
         productService.save(product);
         return Result.success("添加成功");
     }
@@ -119,9 +125,10 @@ public class ProductController {
         // 生成唯一文件名
         String originalFilename = file.getOriginalFilename();
         if(originalFilename == null){
-            return Result.error("文件为空");
+            return Result.error("文件名为空");
         }
-        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        int dotIndex = originalFilename.lastIndexOf(".");
+        String extension = dotIndex > 0 ? originalFilename.substring(dotIndex) : ".jpg";
         String fileName = UUID.randomUUID().toString() + extension;
         String filePath = uploadDir + fileName;
 

@@ -14,4 +14,10 @@ public interface UserFavoriteMapper {
     
     // 获取用户收藏列表
     List<Integer> getFavoriteProductIds(Integer userId);
+
+    // 根据产品ID删除收藏
+    void deleteByProductId(Integer productId);
+
+    // 根据用户ID删除收藏
+    void deleteByUserId(Integer userId);
 }

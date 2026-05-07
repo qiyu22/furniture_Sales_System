@@ -7,6 +7,7 @@ import com.furniture.service.ReviewService;
 import com.furniture.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -33,41 +34,34 @@ public class ReviewServiceImpl implements ReviewService {
     }
     
     @Override
+    @Transactional
     public void save(Review review) {
         if (review.getId() == null) {
-            // 新增
             review.setCreatedAt(new Date());
             review.setUpdatedAt(new Date());
             reviewMapper.insert(review);
         } else {
-            // 更新
             review.setUpdatedAt(new Date());
             reviewMapper.update(review);
         }
-        
-        // 更新商品评分
         updateProductRating(review.getProductId());
     }
     
     @Override
+    @Transactional
     public void update(Review review) {
         review.setUpdatedAt(new Date());
         reviewMapper.update(review);
-        
-        // 更新商品评分
         updateProductRating(review.getProductId());
     }
     
     @Override
+    @Transactional
     public void delete(Integer id) {
-        // 获取评价信息，用于更新商品评分
         Review review = reviewMapper.findById(id);
         if (review != null) {
             reviewMapper.delete(id);
-            // 更新商品评分
             updateProductRating(review.getProductId());
-        } else {
-            reviewMapper.delete(id);
         }
     }
     

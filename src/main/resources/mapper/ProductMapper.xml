@@ -226,4 +226,9 @@
         </if>
         <include refid="priceRangeCondition" />
     </select>
+
+    <!-- 将分类下的产品category_id置空 -->
+    <update id="nullifyCategoryId">
+        UPDATE product SET category_id = NULL WHERE category_id = #{categoryId}
+    </update>
 </mapper>

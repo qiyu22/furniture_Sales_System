@@ -22,4 +22,7 @@ public interface CategoryMapper {
     
     // 删除分类
     void delete(@Param("id") Integer id);
+
+    // 将子分类的parent_id置空
+    void nullifyParentId(@Param("parentId") Integer parentId);
 }

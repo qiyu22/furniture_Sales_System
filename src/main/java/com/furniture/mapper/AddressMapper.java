@@ -28,4 +28,7 @@ public interface AddressMapper {
     
     // 设置指定地址为默认
     void setDefaultById(@Param("id") Integer id);
+
+    // 根据用户ID删除地址
+    void deleteByUserId(@Param("userId") Integer userId);
 }

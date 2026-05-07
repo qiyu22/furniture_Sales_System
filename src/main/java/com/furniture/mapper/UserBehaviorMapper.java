@@ -29,4 +29,8 @@ public interface UserBehaviorMapper {
     // 根据产品ID删除用户行为记录
     @Delete("DELETE FROM user_behavior WHERE product_id = #{productId}")
     int deleteByProductId(Integer productId);
+
+    // 根据用户ID删除用户行为记录
+    @Delete("DELETE FROM user_behavior WHERE user_id = #{userId}")
+    int deleteByUserId(Integer userId);
 }

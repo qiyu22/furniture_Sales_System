@@ -8,6 +8,9 @@ import requests
 import json
 import time
 import sys
+import io
+import struct
+import zlib
 
 BASE_URL = "http://localhost:8080"
 HEADERS = {"Content-Type": "application/json"}
@@ -55,6 +58,32 @@ def delete(path, auth=True):
     if auth and token:
         h["Authorization"] = f"Bearer {token}"
     return requests.delete(f"{BASE_URL}{path}", headers=h)
+
+def create_test_image():
+    """生成1x1像素PNG用于上传测试(纯Python无外部依赖)"""
+    width, height = 1, 1
+    raw_data = b'\x00' + b'\xff\x00\x00' * width  # RGBA: red pixel
+    def chunk(chunk_type, data):
+        c = chunk_type + data
+        crc = struct.pack('>I', zlib.crc32(c) & 0xFFFFFFFF)
+        return struct.pack('>I', len(data)) + c + crc
+    png = b'\x89PNG\r\n\x1a\n'
+    png += chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0))
+    compressed = zlib.compress(raw_data)
+    png += chunk(b'IDAT', compressed)
+    png += chunk(b'IEND', b'')
+    buf = io.BytesIO(png)
+    buf.name = 'test_upload.png'
+    return buf
+
+def upload_file(path, field_name='file'):
+    """上传文件到指定路径"""
+    h = {}
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    img = create_test_image()
+    files = {field_name: (img.name, img, 'image/png')}
+    return requests.post(f"{BASE_URL}{path}", files=files, headers=h)
 
 
 # ========================
@@ -343,6 +372,54 @@ def test_statistics():
 
 
 # ========================
+# 12B. 图片上传 API 测试
+# ========================
+def test_image_uploads():
+    print("\n--- 12B. 图片上传 ---")
+
+    def upload_product_image():
+        r = upload_file("/api/products/upload")
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        resp = r.json()
+        assert resp.get("success") == True, f"上传失败: {resp}"
+        data = resp.get("data", {})
+        assert data.get("imageUrl"), f"缺少imageUrl: {resp}"
+
+    def upload_carousel_image():
+        r = upload_file("/api/carousels/upload")
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        resp = r.json()
+        assert resp.get("success") == True, f"上传失败: {resp}"
+
+    def upload_user_avatar():
+        r = upload_file("/api/users/upload-avatar")
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        resp = r.json()
+        assert resp.get("success") == True, f"上传失败: {resp}"
+
+    def upload_review_image():
+        r = upload_file("/api/reviews/upload")
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        resp = r.json()
+        assert resp.get("success") == True, f"上传失败: {resp}"
+
+    def verify_uploaded_image_accessible():
+        """验证上传的图片可通过URL访问"""
+        r = upload_file("/api/products/upload")
+        resp = r.json()
+        img_url = resp.get("data", {}).get("imageUrl", "")
+        if img_url:
+            r2 = requests.get(img_url, timeout=5)
+            assert r2.status_code == 200, f"图片 {img_url} 无法访问, 状态码: {r2.status_code}"
+
+    test("上传产品图片", upload_product_image)
+    test("上传轮播图图片", upload_carousel_image)
+    test("上传用户头像", upload_user_avatar)
+    test("上传评价图片", upload_review_image)
+    test("验证上传图片可访问", verify_uploaded_image_accessible)
+
+
+# ========================
 # 13. 统一响应格式验证
 # ========================
 def test_response_format():
@@ -445,6 +522,264 @@ def test_recommendations():
 
 
 # ========================
+# 18. 完整CRUD流程测试
+# ========================
+def test_crud_flows():
+    print("\n--- 18. 完整CRUD流程 ---")
+    test_product_id = None
+    test_category_id = None
+    test_carousel_id = None
+    test_activity_id = None
+    test_review_id = None
+
+    # --- 商品CRUD ---
+    def get_valid_category_id():
+        """获取一个有效的分类ID"""
+        try:
+            r = get("/api/categories", auth=False)
+            items = r.json().get("data", [])
+            if isinstance(items, list) and len(items) > 0:
+                return items[0].get("id") if isinstance(items[0], dict) else items[0]
+            if isinstance(items, dict) and items.get("list"):
+                return items["list"][0].get("id") if isinstance(items["list"][0], dict) else items["list"][0]
+        except:
+            pass
+        return 1
+
+    def create_product():
+        cat_id = get_valid_category_id()
+        data = {
+            "name": "Python测试商品_" + str(int(time.time())),
+            "price": 99.99,
+            "stock": 100,
+            "categoryId": cat_id,
+            "description": "自动化测试创建的商品"
+        }
+        r = post("/api/products", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}"
+        resp = r.json()
+        assert resp.get("success") == True, f"创建失败: {resp}"
+
+    def read_product():
+        r = get("/api/products/1", auth=False)
+        assert r.status_code == 200
+        resp = r.json()
+        assert resp.get("success") == True
+
+    def update_product():
+        cat_id = get_valid_category_id()
+        data = {"name": "更新测试商品", "price": 149.99, "stock": 200, "categoryId": cat_id}
+        r = put("/api/products/1", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        resp = r.json()
+        assert resp.get("success") == True, f"更新失败: {resp}"
+        # 还原
+        put("/api/products/1", {"name": "现代简约沙发", "price": 2999.00, "stock": 50, "categoryId": cat_id})
+
+    def delete_product():
+        cat_id = get_valid_category_id()
+        data = {
+            "name": "待删除商品_" + str(int(time.time())),
+            "price": 1.00, "stock": 1, "categoryId": cat_id,
+            "description": "将被删除"
+        }
+        r = post("/api/products", data)
+        pid = r.json().get("data", {}).get("id") if isinstance(r.json().get("data"), dict) else None
+        if not pid:
+            # 通过列表查找刚才创建的
+            r2 = get("/api/products", params={"page": 1, "size": 999}, auth=False)
+            items = r2.json().get("data", {}).get("list", [])
+            for item in items:
+                if "待删除" in str(item.get("name", "")):
+                    pid = item.get("id")
+                    break
+        if pid:
+            r3 = delete(f"/api/products/{pid}")
+            assert r3.status_code == 200, f"状态码: {r3.status_code}"
+            assert r3.json().get("success") == True, f"删除失败: {r3.json()}"
+
+    test("商品-创建", create_product)
+    test("商品-查询", read_product)
+    test("商品-更新并还原", update_product)
+    test("商品-创建后删除", delete_product)
+
+    # --- 分类CRUD ---
+    def create_category():
+        nonlocal test_category_id
+        data = {"name": "测试分类_" + str(int(time.time()))}
+        r = post("/api/categories", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}"
+        resp = r.json()
+        assert resp.get("success") == True, f"创建失败: {resp}"
+
+    def delete_category():
+        data = {"name": "待删分类_" + str(int(time.time()))}
+        r = post("/api/categories", data)
+        assert r.status_code == 200
+        # 查找分类ID
+        r2 = get("/api/categories", auth=False)
+        items = r2.json().get("data", [])
+        if not isinstance(items, list):
+            items = items.get("list", []) if isinstance(items, dict) else []
+        cid = None
+        for item in items:
+            if "待删" in str(item.get("name", "")):
+                cid = item.get("id")
+                break
+        if cid:
+            r3 = delete(f"/api/categories/{cid}")
+            assert r3.status_code == 200
+            assert r3.json().get("success") == True
+
+    test("分类-创建", create_category)
+    test("分类-创建后删除", delete_category)
+
+    # --- 轮播图CRUD ---
+    def create_carousel():
+        data = {"title": "测试轮播", "image": "http://localhost:8080/images/test.png", "productId": 1, "status": 1, "sortOrder": 99}
+        r = post("/api/carousels", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        assert r.json().get("success") == True
+
+    def delete_carousel():
+        r = get("/api/carousels", auth=False)
+        items = r.json().get("data", [])
+        if not isinstance(items, list):
+            items = items if isinstance(items, list) else []
+        cid = None
+        for item in items:
+            if item.get("sortOrder") == 99:
+                cid = item.get("id")
+                break
+        if cid:
+            r2 = delete(f"/api/carousels/{cid}")
+            assert r2.status_code == 200
+
+    test("轮播图-创建", create_carousel)
+    test("轮播图-删除测试数据", delete_carousel)
+
+    # --- 活动CRUD ---
+    def create_activity_with_products():
+        nonlocal test_activity_id
+        data = {
+            "title": "测试活动_" + str(int(time.time())),
+            "type": "flash_sale",
+            "startTime": "2026-01-01 00:00:00",
+            "endTime": "2026-12-31 23:59:59",
+            "status": 1,
+            "description": "API测试"
+        }
+        r = post("/api/activities", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}"
+        resp = r.json()
+        assert resp.get("success") == True
+        aid = resp.get("data", {}).get("id") if isinstance(resp.get("data"), dict) else None
+        if aid:
+            test_activity_id = aid
+            # 添加商品到活动
+            r2 = post(f"/api/activities/{aid}/products", {"productId": 1, "activityPrice": 99.99})
+            assert r2.status_code == 200, f"添加商品失败: {r2.text}"
+
+    def read_activity_products():
+        if test_activity_id:
+            r = get(f"/api/activities/{test_activity_id}/products", auth=False)
+            assert r.status_code == 200
+
+    def delete_activity():
+        if test_activity_id:
+            r = delete(f"/api/activities/{test_activity_id}")
+            assert r.status_code == 200
+            assert r.json().get("success") == True
+
+    test("活动-创建并关联商品", create_activity_with_products)
+    test("活动-查看关联商品", read_activity_products)
+    test("活动-删除(含清理关联)", delete_activity)
+
+    # --- 评价CRUD ---
+    def create_review():
+        nonlocal test_review_id
+        data = {"productId": 1, "rating": 5, "content": "API自动化测试评价"}
+        r = post("/api/reviews", data)
+        assert r.status_code == 200, f"状态码: {r.status_code}, 响应: {r.text}"
+        assert r.json().get("success") == True, f"创建失败: {r.json()}"
+
+    test("评价-创建", create_review)
+
+
+# ========================
+# 19. 输入校验测试
+# ========================
+def test_validation():
+    print("\n--- 19. 输入校验 ---")
+
+    def create_product_no_name():
+        r = post("/api/products", {"price": 1, "stock": 1})
+        resp = r.json()
+        assert resp.get("success") == False, f"空名称应拒绝: {resp}"
+
+    def create_product_invalid_price():
+        r = post("/api/products", {"name": "test", "price": -1, "stock": 1})
+        resp = r.json()
+        assert resp.get("success") == False, f"负价格应拒绝: {resp}"
+
+    def add_cart_invalid_product():
+        r = post("/api/cart", {"productId": 0, "quantity": 1})
+        resp = r.json()
+        assert resp.get("success") == False, f"无效产品ID应拒绝: {resp}"
+
+    def add_cart_zero_quantity():
+        r = post("/api/cart", {"productId": 1, "quantity": 0})
+        resp = r.json()
+        assert resp.get("success") == False, f"零数量应拒绝: {resp}"
+
+    def add_review_invalid_rating():
+        data = {"productId": 1, "rating": 6, "content": "test"}
+        r = post("/api/reviews", data)
+        resp = r.json()
+        assert resp.get("success") == False, f"超出范围评分应拒绝: {resp}"
+
+    def add_category_empty_name():
+        r = post("/api/categories", {"name": ""})
+        resp = r.json()
+        assert resp.get("success") == False, f"空分类名应拒绝: {resp}"
+
+    test("商品-空名称拒绝", create_product_no_name)
+    test("商品-负价格拒绝", create_product_invalid_price)
+    test("购物车-无效产品ID拒绝", add_cart_invalid_product)
+    test("购物车-零数量拒绝", add_cart_zero_quantity)
+    test("评价-超出范围评分拒绝", add_review_invalid_rating)
+    test("分类-空名称拒绝", add_category_empty_name)
+
+
+# ========================
+# 20. 数据完整性测试
+# ========================
+def test_data_integrity():
+    print("\n--- 20. 数据完整性 ---")
+
+    def dashboard_totals_consistent():
+        """验证仪表盘数据与子统计数据一致"""
+        r1 = get("/api/statistics/dashboard", auth=False)
+        r2 = get("/api/statistics/users", auth=False)
+        d1 = r1.json().get("data", {})
+        d2 = r2.json().get("data", {})
+        dashboard_users = d1.get("totalUsers", 0)
+        stats_users = d2.get("totalUsers", 0)
+        assert dashboard_users == stats_users, \
+            f"用户数不一致: dashboard={dashboard_users}, stats={stats_users}"
+
+    def orders_paginated():
+        """验证分页订单接口可正常工作"""
+        r = get("/api/orders/page", params={"page": 1, "pageSize": 5})
+        assert r.status_code == 200, f"状态码: {r.status_code}"
+        resp = r.json()
+        assert resp.get("success") == True
+
+    test("仪表盘与统计用户数一致", dashboard_totals_consistent)
+    test("订单分页接口正常", orders_paginated)
+
+
+# ========================
 # 运行所有测试
 # ========================
 if __name__ == "__main__":
@@ -469,6 +804,7 @@ if __name__ == "__main__":
         test_carousels()
         test_activities()
         test_statistics()
+        test_image_uploads()
         test_cart()
         test_orders()
         test_addresses()
@@ -476,6 +812,9 @@ if __name__ == "__main__":
         test_customer_service()
         test_favorites()
         test_recommendations()
+        test_crud_flows()
+        test_validation()
+        test_data_integrity()
         test_response_format()
         test_auth_required()
 

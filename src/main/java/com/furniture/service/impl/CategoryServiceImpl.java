@@ -2,9 +2,11 @@ package com.furniture.service.impl;
 
 import com.furniture.entity.Category;
 import com.furniture.mapper.CategoryMapper;
+import com.furniture.mapper.ProductMapper;
 import com.furniture.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -14,6 +16,9 @@ public class CategoryServiceImpl implements CategoryService {
     
     @Autowired
     private CategoryMapper categoryMapper;
+    
+    @Autowired
+    private ProductMapper productMapper;
     
     @Override
     public List<Category> findAll() {
@@ -37,7 +42,10 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     @Override
+    @Transactional
     public void delete(Integer id) {
+        productMapper.nullifyCategoryId(id);
+        categoryMapper.nullifyParentId(id);
         categoryMapper.delete(id);
     }
 }

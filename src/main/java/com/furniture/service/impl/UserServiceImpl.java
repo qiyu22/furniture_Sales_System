@@ -2,12 +2,17 @@ package com.furniture.service.impl;
 
 import com.furniture.entity.User;
 import com.furniture.mapper.UserMapper;
+import com.furniture.mapper.CartItemMapper;
+import com.furniture.mapper.UserFavoriteMapper;
+import com.furniture.mapper.UserBehaviorMapper;
+import com.furniture.mapper.AddressMapper;
 import com.furniture.service.UserService;
 
 import com.furniture.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +27,18 @@ public class UserServiceImpl implements UserService {
     
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private CartItemMapper cartItemMapper;
+    
+    @Autowired
+    private UserFavoriteMapper userFavoriteMapper;
+    
+    @Autowired
+    private UserBehaviorMapper userBehaviorMapper;
+    
+    @Autowired
+    private AddressMapper addressMapper;
     
     @Autowired
     private JwtUtils jwtUtils;
@@ -141,7 +158,12 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
+    @Transactional
     public void delete(Integer id) {
+        cartItemMapper.clearByUserId(id);
+        userFavoriteMapper.deleteByUserId(id);
+        userBehaviorMapper.deleteByUserId(id);
+        addressMapper.deleteByUserId(id);
         userMapper.delete(id);
     }
     

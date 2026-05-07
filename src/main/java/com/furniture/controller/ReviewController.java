@@ -57,6 +57,13 @@ public class ReviewController {
     @PutMapping("/{id}")
     public Result updateReview(@ApiParam("评价ID") @PathVariable Integer id, @ApiParam("评价信息") @RequestBody Review review, HttpServletRequest request) {
         Integer userId = getUserId(request);
+        Review existing = reviewService.findById(id);
+        if (existing == null) {
+            return Result.error("评价不存在");
+        }
+        if (!existing.getUserId().equals(userId)) {
+            return Result.error("无权修改他人的评价");
+        }
         review.setId(id);
         review.setUserId(userId);
         reviewService.update(review);
@@ -66,7 +73,14 @@ public class ReviewController {
     @ApiOperation("删除评价")
     @DeleteMapping("/{id}")
     public Result deleteReview(@ApiParam("评价ID") @PathVariable Integer id, HttpServletRequest request) {
-        getUserId(request); // 验证用户登录状态
+        Integer userId = getUserId(request);
+        Review existing = reviewService.findById(id);
+        if (existing == null) {
+            return Result.error("评价不存在");
+        }
+        if (!existing.getUserId().equals(userId)) {
+            return Result.error("无权删除他人的评价");
+        }
         reviewService.delete(id);
         return Result.success("删除成功");
     }
@@ -117,6 +131,12 @@ public class ReviewController {
     @ApiOperation("添加评价")
     @PostMapping
     public Result addReview(@RequestBody Review review, HttpServletRequest request) {
+        if (review.getRating() == null || review.getRating() < 1 || review.getRating() > 5) {
+            return Result.error("评分必须在1-5之间");
+        }
+        if (review.getContent() == null || review.getContent().trim().isEmpty()) {
+            return Result.error("评价内容不能为空");
+        }
         Integer userId = getUserId(request);
         review.setUserId(userId);
         reviewService.save(review);

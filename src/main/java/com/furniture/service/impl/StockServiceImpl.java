@@ -30,35 +30,40 @@ public class StockServiceImpl implements StockService {
         String lockKey = LOCK_KEY_PREFIX + productId;
         String stockKey = STOCK_KEY_PREFIX + productId;
         
-        // 获取锁
         ReentrantLock lock = lockMap.computeIfAbsent(lockKey, k -> new ReentrantLock());
-        if (!lock.tryLock()) {
-            return false; // 未获取到锁
+        boolean locked = false;
+        try {
+            locked = lock.tryLock();
+        } catch (Exception e) {
+            return deductStockFromDb(productId, quantity);
+        }
+        if (!locked) {
+            return deductStockFromDb(productId, quantity);
         }
         
         try {
-            // 从缓存获取库存
             Integer stock = stockCache.get(stockKey);
             if (stock == null) {
-                // 缓存中没有库存，从数据库获取
-                stock = productService.findById(productId).getStock();
+                com.furniture.entity.Product product = productService.findById(productId);
+                if (product == null) {
+                    return false;
+                }
+                stock = product.getStock();
+                if (stock == null) stock = 0;
                 stockCache.put(stockKey, stock);
             }
             
-            // 检查库存是否足够
             if (stock < quantity) {
                 return false;
             }
             
-            // 预扣减库存
             stockCache.put(stockKey, stock - quantity);
             return true;
         } catch (Exception e) {
-            // 异常时，降级到数据库操作
             return deductStockFromDb(productId, quantity);
         } finally {
-            // 释放锁
             lock.unlock();
+            lockMap.remove(lockKey);
         }
     }
     
@@ -98,12 +103,10 @@ public class StockServiceImpl implements StockService {
      * 从数据库扣减库存（降级方案）
      */
     private boolean deductStockFromDb(Integer productId, Integer quantity) {
-        // 从数据库获取库存
-        Integer stock = productService.findById(productId).getStock();
-        if (stock < quantity) {
+        com.furniture.entity.Product product = productService.findById(productId);
+        if (product == null || product.getStock() == null || product.getStock() < quantity) {
             return false;
         }
-        // 直接从数据库扣减库存
         productService.decreaseStock(productId, quantity);
         return true;
     }

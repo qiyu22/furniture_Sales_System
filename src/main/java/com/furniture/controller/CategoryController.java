@@ -36,6 +36,9 @@ public class CategoryController {
     @ApiOperation("添加分类")
     @PostMapping
     public Result addCategory(@ApiParam("分类信息") @RequestBody Category category) {
+        if (category.getName() == null || category.getName().trim().isEmpty()) {
+            return Result.error("分类名称不能为空");
+        }
         categoryService.add(category);
         return Result.success("添加成功");
     }
@@ -43,6 +46,9 @@ public class CategoryController {
     @ApiOperation("更新分类")
     @PutMapping("/{id}")
     public Result updateCategory(@ApiParam("分类ID") @PathVariable int id, @ApiParam("分类信息") @RequestBody Category category) {
+        if (category.getName() == null || category.getName().trim().isEmpty()) {
+            return Result.error("分类名称不能为空");
+        }
         category.setId(id);
         categoryService.update(category);
         return Result.success("更新成功");

@@ -35,6 +35,12 @@ public class CartController {
     @ApiOperation("添加购物车项")
     @PostMapping
     public Result addCartItem(@RequestBody CartRequest cartRequest, HttpServletRequest request) {
+        if (cartRequest.getProductId() <= 0) {
+            return Result.error("无效的商品ID");
+        }
+        if (cartRequest.getQuantity() <= 0) {
+            return Result.error("数量必须大于0");
+        }
         String token = request.getHeader("Authorization");
         
         if (token != null && token.startsWith("Bearer ")) {
@@ -88,6 +94,9 @@ public class CartController {
     @ApiOperation("更新购物车项数量")
     @PutMapping("/{id}")
     public Result updateCartItem(@ApiParam("购物车项ID") @PathVariable int id, @ApiParam("数量") @RequestParam int quantity) {
+        if (quantity <= 0) {
+            return Result.error("数量必须大于0");
+        }
         cartService.updateCartItem(id, quantity);
         return Result.success("更新成功");
     }

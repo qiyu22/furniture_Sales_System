@@ -32,4 +32,9 @@
     <delete id="delete" parameterType="java.lang.Integer">
         DELETE FROM category WHERE id = #{id}
     </delete>
+
+    <!-- 将子分类的parent_id置空 -->
+    <update id="nullifyParentId">
+        UPDATE category SET parent_id = NULL WHERE parent_id = #{parentId}
+    </update>
 </mapper>

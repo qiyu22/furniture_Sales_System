@@ -597,32 +597,24 @@ public Map<String, Object> getDashboardStatistics() {
             // 计算总商品数
             int totalProducts = products.size();
             
-            // 计算总用户数（排除管理员）
+            // 计算总用户数
             List<User> users = userService.findAll();
-            int totalUsers = (int) users.stream()
-                    .filter(user -> user.getRole() != null && !"ADMIN".equals(user.getRole()))
-                    .count();
+            int totalUsers = users != null ? users.size() : 0;
             
-            // 销售趋势（最近7天）
+            // 商品销量排行（按销量从高到低取前10）
             Map<String, Object> salesTrend = new HashMap<>();
-            List<String> dates = new ArrayList<>();
-            List<Double> values = new ArrayList<>();
+            List<String> names = new ArrayList<>();
+            List<Integer> values = new ArrayList<>();
             
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date today = new Date();
-            for (int i = 6; i >= 0; i--) {
-                Date date = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
-                String dateStr = dateFormat.format(date);
-                dates.add(dateStr);
-                
-                // 计算当天销售额
-                double daySales = orders.stream()
-                        .filter(order -> order.getStatus() == 3 && order.getCreatedAt() != null && order.getTotalPrice() != null && dateFormat.format(order.getCreatedAt()).equals(dateStr))
-                        .mapToDouble(order -> order.getTotalPrice().doubleValue())
-                        .sum();
-                values.add(daySales);
-            }
-            salesTrend.put("dates", dates);
+            products.stream()
+                    .filter(product -> product.getSales() != null && product.getSales() > 0)
+                    .sorted((a, b) -> Integer.compare(b.getSales(), a.getSales()))
+                    .limit(10)
+                    .forEach(product -> {
+                        names.add(product.getName() != null ? product.getName() : "未知商品");
+                        values.add(product.getSales());
+                    });
+            salesTrend.put("names", names);
             salesTrend.put("values", values);
             
             // 订单状态分布
@@ -671,6 +663,27 @@ public Map<String, Object> getDashboardStatistics() {
                         return orderInfo;
                     })
                     .collect(Collectors.toList());
+
+            // 每日销售额趋势（全部订单统计，不限状态）
+            Map<String, Object> dailySales = new HashMap<>();
+            List<String> salesDates = new ArrayList<>();
+            List<Double> salesAmounts = new ArrayList<>();
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            Map<String, Double> dailyAmountMap = new java.util.LinkedHashMap<>();
+            for (Order order : orders) {
+                if (order.getTotalPrice() != null && order.getCreatedAt() != null) {
+                    String dateKey = sdf.format(order.getCreatedAt());
+                    dailyAmountMap.merge(dateKey, order.getTotalPrice().doubleValue(), Double::sum);
+                }
+            }
+            List<String> sortedDates = new ArrayList<>(dailyAmountMap.keySet());
+            java.util.Collections.sort(sortedDates);
+            for (String date : sortedDates) {
+                salesDates.add(date);
+                salesAmounts.add(dailyAmountMap.get(date));
+            }
+            dailySales.put("dates", salesDates);
+            dailySales.put("amounts", salesAmounts);
             
             result.put("totalSales", totalSales);
             result.put("totalOrders", totalOrders);
@@ -680,6 +693,7 @@ public Map<String, Object> getDashboardStatistics() {
             result.put("orderStatus", orderStatus);
             result.put("topProducts", topProducts);
             result.put("recentOrders", recentOrders);
+            result.put("dailySales", dailySales);
         } catch (Exception e) {
             e.printStackTrace();
             // 如果出现异常，返回默认值
@@ -688,12 +702,16 @@ public Map<String, Object> getDashboardStatistics() {
             result.put("totalProducts", 0);
             result.put("totalUsers", 0);
             Map<String, Object> salesTrendDefault = new HashMap<>();
-            salesTrendDefault.put("dates", new ArrayList<String>());
-            salesTrendDefault.put("values", new ArrayList<Double>());
+            salesTrendDefault.put("names", new ArrayList<String>());
+            salesTrendDefault.put("values", new ArrayList<Integer>());
             result.put("salesTrend", salesTrendDefault);
             result.put("orderStatus", new ArrayList<Map<String, Object>>());
             result.put("topProducts", new ArrayList<Map<String, Object>>());
             result.put("recentOrders", new ArrayList<Map<String, Object>>());
+            Map<String, Object> dailySalesDefault = new HashMap<>();
+            dailySalesDefault.put("dates", new ArrayList<String>());
+            dailySalesDefault.put("amounts", new ArrayList<Double>());
+            result.put("dailySales", dailySalesDefault);
         }
         
         return result;

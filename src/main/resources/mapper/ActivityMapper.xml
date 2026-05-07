@@ -119,6 +119,12 @@
         DELETE FROM activity_product
         WHERE activity_id = #{activityId}
     </delete>
+
+    <!-- 根据活动ID和产品ID删除单个活动商品 -->
+    <delete id="deleteByActivityIdAndProductId">
+        DELETE FROM activity_product
+        WHERE activity_id = #{activityId} AND product_id = #{productId}
+    </delete>
     
     <!-- 根据活动类型查询活动商品 -->
     <select id="findProductsByActivityType" resultMap="ActivityProductResultMap">
@@ -159,4 +165,9 @@
         AND a.end_time &gt;= NOW()
         ORDER BY ap.sort_order ASC
     </select>
+
+    <!-- 根据产品ID删除活动商品 -->
+    <delete id="deleteActivityProductByProductId">
+        DELETE FROM activity_product WHERE product_id = #{productId}
+    </delete>
 </mapper>

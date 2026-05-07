@@ -51,6 +51,13 @@ public class ActivityController {
     @ApiOperation("添加活动")
     @PostMapping
     public Result addActivity(@ApiParam("活动信息") @RequestBody Activity activity) {
+        if (activity.getTitle() == null || activity.getTitle().trim().isEmpty()) {
+            return Result.error("活动标题不能为空");
+        }
+        if (activity.getStartTime() != null && activity.getEndTime() != null 
+                && activity.getStartTime().after(activity.getEndTime())) {
+            return Result.error("开始时间不能晚于结束时间");
+        }
         activityService.add(activity);
         return Result.success(activity);
     }
@@ -58,6 +65,10 @@ public class ActivityController {
     @ApiOperation("更新活动")
     @PutMapping("/{id}")
     public Result updateActivity(@ApiParam("活动ID") @PathVariable Integer id, @ApiParam("活动信息") @RequestBody Activity activity) {
+        if (activity.getStartTime() != null && activity.getEndTime() != null 
+                && activity.getStartTime().after(activity.getEndTime())) {
+            return Result.error("开始时间不能晚于结束时间");
+        }
         activity.setId(id);
         activityService.update(activity);
         return Result.success("更新成功");

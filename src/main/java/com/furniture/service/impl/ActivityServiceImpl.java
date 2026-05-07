@@ -6,6 +6,7 @@ import com.furniture.mapper.ActivityMapper;
 import com.furniture.service.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -50,7 +51,9 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
+        activityMapper.deleteActivityProduct(id);
         activityMapper.delete(id);
     }
 
@@ -66,10 +69,9 @@ public class ActivityServiceImpl implements ActivityService {
     }
 
     @Override
+    @Transactional
     public void updateActivityProduct(ActivityProduct activityProduct) {
-        // 先删除旧的关联
-        activityMapper.deleteActivityProduct(activityProduct.getActivityId());
-        // 再添加新的关联
+        activityMapper.deleteByActivityIdAndProductId(activityProduct.getActivityId(), activityProduct.getProductId());
         activityProduct.setCreatedAt(new Date());
         activityMapper.insertActivityProduct(activityProduct);
     }

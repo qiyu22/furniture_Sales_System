@@ -39,9 +39,15 @@ public interface ActivityMapper {
     // 删除活动商品
     void deleteActivityProduct(@Param("activityId") Integer activityId);
     
+    // 根据活动ID和产品ID删除单个活动商品
+    void deleteByActivityIdAndProductId(@Param("activityId") Integer activityId, @Param("productId") Integer productId);
+    
     // 根据活动类型查询活动商品
     List<ActivityProduct> findProductsByActivityType(@Param("type") String type);
     
     // 根据产品ID查询活动商品
     List<ActivityProduct> findProductsByProductId(@Param("productId") Integer productId);
+
+    // 根据产品ID删除活动商品
+    void deleteActivityProductByProductId(@Param("productId") Integer productId);
 }

@@ -63,7 +63,10 @@ public class PaymentController {
                     // 验证金额
                     try {
                         BigDecimal paymentAmount = new BigDecimal(amount);
-                        if (order.getTotalPrice().compareTo(paymentAmount) != 0) {
+                        if (paymentAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                            return Result.error("金额必须大于0");
+                        }
+                        if (order.getTotalPrice() == null || order.getTotalPrice().compareTo(paymentAmount) != 0) {
                             return Result.error("金额不匹配");
                         }
                     } catch (NumberFormatException e) {
